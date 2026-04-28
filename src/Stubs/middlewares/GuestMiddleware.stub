@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middlewares;
+
+use Slenix\Http\Request;
+use Slenix\Http\Response;
+use Slenix\Http\Middlewares\Middleware;
+
+class GuestMiddleware implements Middleware
+{
+    public function handle(Request $request, Response $response, callable $next): mixed
+    {
+        // TODO: Replace with auth()->check() once Auth is complete.
+        if (!empty($_SESSION['auth_id'])) {
+            $response->redirect('/dashboard');
+            return null;
+        }
+
+        return $next($request, $response);
+    }
+}

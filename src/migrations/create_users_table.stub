@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+use Slenix\Database\Migrations\Migration;
+use Slenix\Database\Migrations\Blueprint;
+use Slenix\Database\Migrations\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('remember_token')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+    }
+};

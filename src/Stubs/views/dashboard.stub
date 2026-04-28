@@ -1,0 +1,65 @@
+@extends('auth.layout')
+
+@section('title', 'Dashboard')
+
+@section('content')
+
+<div class="app-layout">
+
+    {{-- Sidebar --}}
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="10" fill="#1a1a1a"/>
+                <path d="M14 34V14h6v14h10v6H14z" fill="#fff"/>
+                <path d="M30 14h4v12h-4V14z" fill="#fff" opacity=".5"/>
+            </svg>
+            Slenix App
+        </div>
+
+        <a href="/dashboard" class="nav-item active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <div class="sidebar-footer">
+            <div class="avatar">U</div>
+            <div>
+                <div style="font-weight:600;font-size:.8rem">User</div>
+                <form action="/logout" method="POST" style="margin:0">
+                    @csrf
+                    <button type="submit"
+                            style="background:none;border:none;padding:0;
+                                   font-size:.78rem;color:#6b7280;cursor:pointer;">
+                        Log out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    {{-- Main content --}}
+    <main class="main">
+        <div class="main-header">
+            <h1>Dashboard</h1>
+            <p>You're logged in and ready to build something great.</p>
+        </div>
+
+        <div class="card" style="max-width:480px">
+            <p style="font-size:.9rem;color:#6b7280;line-height:1.6">
+                This is your Veil dashboard stub. Edit
+                <code style="background:#f3f3f2;padding:.1rem .3rem;border-radius:4px">
+                    views/auth/dashboard.luna.php
+                </code>
+                to get started.
+            </p>
+        </div>
+    </main>
+
+</div>
+
+@endsection

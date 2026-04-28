@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Slenix\Http\Request;
+use Slenix\Http\Response;
+
+class AuthController
+{
+    // -------------------------------------------------------------------------
+    // Login
+    // -------------------------------------------------------------------------
+
+    public function showLogin(Request $request, Response $response): void
+    {
+        view('auth.login');
+    }
+
+    public function login(Request $request, Response $response): void
+    {
+        $email    = $request->input('email', '');
+        $password = $request->input('password', '');
+
+        // TODO: Implement with auth()->attempt() once Auth is complete.
+        // Example:
+        // if (auth()->attempt(['email' => $email, 'password' => $password])) {
+        //     $response->redirect('/dashboard');
+        //     return;
+        // }
+
+        // Temporary stub — replace with real auth logic.
+        $response->redirect('/login');
+    }
+
+    // -------------------------------------------------------------------------
+    // Register
+    // -------------------------------------------------------------------------
+
+    public function showRegister(Request $request, Response $response): void
+    {
+        view('auth.register');
+    }
+
+    public function register(Request $request, Response $response): void
+    {
+        $name     = $request->input('name', '');
+        $email    = $request->input('email', '');
+        $password = $request->input('password', '');
+        $confirm  = $request->input('password_confirmation', '');
+
+        // TODO: Add validation and user creation logic.
+        // Example:
+        // if ($password !== $confirm) { ... }
+        // User::create([...]);
+        // auth()->login($user);
+        // $response->redirect('/dashboard');
+
+        $response->redirect('/register');
+    }
+
+    // -------------------------------------------------------------------------
+    // Dashboard
+    // -------------------------------------------------------------------------
+
+    public function dashboard(Request $request, Response $response): void
+    {
+        view('auth.dashboard');
+    }
+
+    // -------------------------------------------------------------------------
+    // Logout
+    // -------------------------------------------------------------------------
+
+    public function logout(Request $request, Response $response): void
+    {
+        // TODO: auth()->logout();
+        session_destroy();
+        $response->redirect('/login');
+    }
+}

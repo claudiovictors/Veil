@@ -1,0 +1,33 @@
+{
+    "name": "slenix/veil",
+    "description": "Authentication scaffolding for the Slenix Framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cláudio Victor",
+            "email": "barrosclaudio147@gmail.com",
+            "homepage": "https://github.com/claudiovictors/veil"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Slenix\\Veil\\": "src/"
+        }
+    },
+    "suggest": {
+        "slenix/framework": "The Slenix framework this package is designed for."
+    },
+    "extra": {
+        "slenix": {
+            "providers": [
+                "Slenix\\Veil\\VeilServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

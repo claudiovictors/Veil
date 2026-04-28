@@ -1,0 +1,50 @@
+@extends('auth.layout')
+
+@section('title', 'Login')
+
+@section('content')
+
+<div class="logo">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="#1a1a1a"/>
+        <path d="M14 34V14h6v14h10v6H14z" fill="#fff"/>
+        <path d="M30 14h4v12h-4V14z" fill="#fff" opacity=".5"/>
+    </svg>
+</div>
+
+<div class="card">
+
+    @if(isset($error))
+        <div class="alert alert-error">{{ $error }}</div>
+    @endif
+
+    <form action="/login" method="POST">
+        @csrf
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email"
+                   value="@old('email')" required autofocus
+                   placeholder="email@example.com">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   required placeholder="••••••••">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember" style="margin:0;font-weight:400">Remember me</label>
+        </div>
+
+        <div class="form-footer">
+            <a href="/register">Don't have an account?</a>
+            <button type="submit" class="btn btn-primary">Log in</button>
+        </div>
+
+    </form>
+</div>
+
+@endsection
