@@ -1,7 +1,7 @@
 # <p align="center">Slenix Veil</p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/claudiovictors/veil/main/art/logo.svg" width="120" alt="Veil Logo">
+<img src="https://slenix.vercel.app/assets/logo.svg" width="120" alt="Veil Logo">
 </p>
 
 <p align="center">
