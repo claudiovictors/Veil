@@ -31,7 +31,7 @@ class VeilInstallCommand extends Command
     {
         $this->args        = $args;
         $this->force       = in_array('--force', $args, true);
-        $this->projectRoot = dirname(__DIR__, 4); // vai até a raiz do projeto
+        $this->projectRoot = dirname(__DIR__, 3); // vai até a raiz do projeto
         $this->stubsPath   = VeilServiceProvider::stubsPath();
     }
 
