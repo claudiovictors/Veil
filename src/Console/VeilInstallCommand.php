@@ -5,9 +5,10 @@
 | Veil Install Command
 |--------------------------------------------------------------------------
 |
-| This command handles the installation of the Veil authentication 
-| scaffolding into a Slenix project. It automates the publishing of 
-| controllers, middlewares, views, and migrations.
+| This command handles the full installation of the Slenix Veil 
+| authentication scaffolding. It automates the deployment of the User model, 
+| controllers, middlewares, views, and multiple database migrations 
+| while also injecting necessary routes into the application.
 |
 */
 
@@ -20,22 +21,21 @@ use Slenix\Veil\VeilServiceProvider;
 
 class VeilInstallCommand extends Command
 {
-    /** @var array The command line arguments. */
+    /** @var array The raw command line arguments. */
     private array  $args;
 
-    /** @var bool Flag to determine if existing files should be overwritten. */
+    /** @var bool Whether to overwrite existing files via the --force flag. */
     private bool   $force;
 
-    /** @var string The absolute path to the project root. */
+    /** @var string The root directory of the project. */
     private string $projectRoot;
 
-    /** @var string The absolute path to the package stubs. */
+    /** @var string The source path for template stubs. */
     private string $stubsPath;
 
     /**
      * VeilInstallCommand constructor.
-     *
-     * @param array $args Command line arguments.
+     * * @param array $args
      */
     public function __construct(array $args)
     {
@@ -46,7 +46,7 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Execute the installation process.
+     * Run the installation process.
      * * @return void
      */
     public function install(): void
@@ -55,10 +55,11 @@ class VeilInstallCommand extends Command
         self::info('Installing Slenix Veil authentication scaffolding...');
         self::newLine();
 
+        $this->publishModel();
         $this->publishController();
         $this->publishMiddlewares();
         $this->publishViews();
-        $this->publishMigration();
+        $this->publishMigrations();
         $this->appendRoutes();
 
         self::newLine();
@@ -71,7 +72,20 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Publishes the main Authentication Controller.
+     * Publishes the User model stub to the application.
+     * * @return void
+     */
+    private function publishModel(): void
+    {
+        $this->publish(
+            $this->stubsPath . '/models/User.stub',
+            $this->projectRoot . '/app/Models/User.php',
+            'User model'
+        );
+    }
+
+    /**
+     * Publishes the AuthController stub.
      * * @return void
      */
     private function publishController(): void
@@ -84,7 +98,7 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Publishes the authentication and guest middlewares.
+     * Publishes the Auth and Guest middleware stubs.
      * * @return void
      */
     private function publishMiddlewares(): void
@@ -104,7 +118,7 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Publishes all authentication-related Luna views.
+     * Publishes all Luna view stubs for authentication.
      * * @return void
      */
     private function publishViews(): void
@@ -127,23 +141,35 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Generates and publishes the users table migration with a fresh timestamp.
+     * Publishes multiple database migrations in sequential order.
      * * @return void
      */
-    private function publishMigration(): void
+    private function publishMigrations(): void
     {
-        $timestamp   = date('Y_m_d_His');
-        $destination = $this->projectRoot . '/database/migrations/' . $timestamp . '_create_users_table.php';
+        // Order matters — users first, then dependents
+        $migrations = [
+            'create_users_table'              => '01',
+            'create_remember_tokens_table'    => '02',
+            'create_password_resets_table'    => '03',
+            'create_roles_permissions_tables' => '04',
+        ];
 
-        $this->publish(
-            $this->stubsPath . '/migrations/create_users_table.stub',
-            $destination,
-            'create_users_table migration'
-        );
+        $base = date('Y_m_d_His');
+
+        foreach ($migrations as $name => $suffix) {
+            $timestamp   = $base . $suffix;
+            $destination = $this->projectRoot . '/database/migrations/' . $timestamp . '_' . $name . '.php';
+
+            $this->publish(
+                $this->stubsPath . '/migrations/' . $name . '.stub',
+                $destination,
+                $name . ' migration'
+            );
+        }
     }
 
     /**
-     * Appends the Veil route definitions to the web routes file.
+     * Appends Veil routes to the web.php file if they aren't already present.
      * * @return void
      */
     private function appendRoutes(): void
@@ -174,11 +200,10 @@ class VeilInstallCommand extends Command
     }
 
     /**
-     * Copies a stub file to its destination and creates directories if needed.
-     *
-     * @param string $stub The source stub path.
-     * @param string $destination The destination path in the project.
-     * @param string $label A descriptive label for console output.
+     * Copies a stub file to a destination while handling directory creation.
+     * * @param string $stub The path to the source stub.
+     * @param string $destination The path to the target destination.
+     * @param string $label The label used for console output.
      * @return void
      */
     private function publish(string $stub, string $destination, string $label): void

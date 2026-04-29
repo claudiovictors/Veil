@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Slenix\Database\Model;
+use Slenix\Supports\Auth\Traits\Authenticatable;
+use Slenix\Supports\Auth\Traits\HasRoles;
+
+class User extends Model
+{
+    use Authenticatable, HasRoles;
+
+    protected string $table    = 'users';
+    protected array  $fillable = ['name', 'email', 'password'];
+    protected array  $hidden   = ['password', 'remember_token'];
+}
