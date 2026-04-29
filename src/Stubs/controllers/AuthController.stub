@@ -1,82 +1,164 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Auth Controller
+|--------------------------------------------------------------------------
+|
+| This controller handles the authentication of existing users and the 
+| registration of new users. It includes logic for login, logout, 
+| registration, and displaying the user dashboard.
+|
+*/
+
 declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\User;
 use Slenix\Http\Request;
 use Slenix\Http\Response;
+use Slenix\Supports\Str;
 
 class AuthController
 {
-    // -------------------------------------------------------------------------
-    // Login
-    // -------------------------------------------------------------------------
-
+    /**
+     * Show the login form.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function showLogin(Request $request, Response $response): void
     {
+        if (auth()->check()) {
+            $response->redirect('/dashboard');
+            return;
+        }
+
         view('auth.login');
     }
 
+    /**
+     * Handle an authentication attempt.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function login(Request $request, Response $response): void
     {
-        $email    = $request->input('email', '');
+        if (auth()->check()) {
+            $response->redirect('/dashboard');
+            return;
+        }
+
+        $email    = Str::escape($request->input('email', ''));
         $password = $request->input('password', '');
+        $remember = $request->boolean('remember');
 
-        // TODO: Implement with auth()->attempt() once Auth is complete.
-        // Example:
-        // if (auth()->attempt(['email' => $email, 'password' => $password])) {
-        //     $response->redirect('/dashboard');
-        //     return;
-        // }
+        if (!auth()->attempt(['email' => $email, 'password' => $password], $remember)) {
+            view('auth.login', [
+                'error' => 'These credentials do not match our records.',
+                'old'   => ['email' => $email],
+            ]);
+            return;
+        }
 
-        // Temporary stub — replace with real auth logic.
-        $response->redirect('/login');
+        $response->redirect('/dashboard');
     }
 
-    // -------------------------------------------------------------------------
-    // Register
-    // -------------------------------------------------------------------------
-
+    /**
+     * Show the registration form.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function showRegister(Request $request, Response $response): void
     {
+        if (auth()->check()) {
+            $response->redirect('/dashboard');
+            return;
+        }
+
         view('auth.register');
     }
 
+    /**
+     * Handle the registration of a new user.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function register(Request $request, Response $response): void
     {
-        $name     = $request->input('name', '');
-        $email    = $request->input('email', '');
+        if (auth()->check()) {
+            $response->redirect('/dashboard');
+            return;
+        }
+
+        $name     = Str::escape($request->input('name', ''));
+        $email    = Str::escape($request->input('email', ''));
         $password = $request->input('password', '');
         $confirm  = $request->input('password_confirmation', '');
 
-        // TODO: Add validation and user creation logic.
-        // Example:
-        // if ($password !== $confirm) { ... }
-        // User::create([...]);
-        // auth()->login($user);
-        // $response->redirect('/dashboard');
+        // Basic validation
+        if (empty($name) || empty($email) || empty($password)) {
+            view('auth.register', [
+                'error' => 'All fields are required.',
+                'old'   => ['name' => $name, 'email' => $email],
+            ]);
+            return;
+        }
 
-        $response->redirect('/register');
+        if ($password !== $confirm) {
+            view('auth.register', [
+                'error' => 'Passwords do not match.',
+                'old'   => ['name' => $name, 'email' => $email],
+            ]);
+            return;
+        }
+
+        if (strlen($password) < 8) {
+            view('auth.register', [
+                'error' => 'Password must be at least 8 characters.',
+                'old'   => ['name' => $name, 'email' => $email],
+            ]);
+            return;
+        }
+
+        // Create the user
+        $user = User::create([
+            'name'     => $name,
+            'email'    => $email,
+            'password' => password_hash($password, PASSWORD_BCRYPT),
+        ]);
+
+        auth()->login($user);
+
+        $response->redirect('/dashboard');
     }
 
-    // -------------------------------------------------------------------------
-    // Dashboard
-    // -------------------------------------------------------------------------
-
+    /**
+     * Display the user dashboard.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function dashboard(Request $request, Response $response): void
     {
-        view('auth.dashboard');
+        view('auth.dashboard', [
+            'user' => auth()->user(),
+        ]);
     }
 
-    // -------------------------------------------------------------------------
-    // Logout
-    // -------------------------------------------------------------------------
-
+    /**
+     * Log the user out of the application.
+     * * @param Request $request
+     * @param Response $response
+     * @return void
+     */
     public function logout(Request $request, Response $response): void
     {
-        // TODO: auth()->logout();
-        session_destroy();
+        auth()->logout();
         $response->redirect('/login');
     }
 }

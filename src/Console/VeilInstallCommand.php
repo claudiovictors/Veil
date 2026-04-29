@@ -2,14 +2,12 @@
 
 /*
 |--------------------------------------------------------------------------
-| VeilInstallCommand — slenix/veil
+| Veil Install Command
 |--------------------------------------------------------------------------
 |
-| Installs Veil authentication scaffolding into a Slenix project.
-|
-| Usage:
-|   php celestial veil:install
-|   php celestial veil:install --force   (overwrite existing files)
+| This command handles the installation of the Veil authentication 
+| scaffolding into a Slenix project. It automates the publishing of 
+| controllers, middlewares, views, and migrations.
 |
 */
 
@@ -22,21 +20,34 @@ use Slenix\Veil\VeilServiceProvider;
 
 class VeilInstallCommand extends Command
 {
-    private array $args;
-    private bool  $force;
+    /** @var array The command line arguments. */
+    private array  $args;
+
+    /** @var bool Flag to determine if existing files should be overwritten. */
+    private bool   $force;
+
+    /** @var string The absolute path to the project root. */
     private string $projectRoot;
+
+    /** @var string The absolute path to the package stubs. */
     private string $stubsPath;
 
+    /**
+     * VeilInstallCommand constructor.
+     *
+     * @param array $args Command line arguments.
+     */
     public function __construct(array $args)
     {
         $this->args        = $args;
         $this->force       = in_array('--force', $args, true);
-        $this->projectRoot = dirname(__DIR__, 5); // vai até a raiz do projeto
+        $this->projectRoot = dirname(__DIR__, 5);
         $this->stubsPath   = VeilServiceProvider::stubsPath();
     }
 
     /**
-     * Run the installer.
+     * Execute the installation process.
+     * * @return void
      */
     public function install(): void
     {
@@ -59,18 +70,23 @@ class VeilInstallCommand extends Command
         self::newLine();
     }
 
-    // =========================================================================
-    // Publishers
-    // =========================================================================
-
+    /**
+     * Publishes the main Authentication Controller.
+     * * @return void
+     */
     private function publishController(): void
     {
-        $destination = $this->projectRoot . '/app/Controllers/AuthController.php';
-        $stub        = $this->stubsPath . '/controllers/AuthController.stub';
-
-        $this->publish($stub, $destination, 'AuthController');
+        $this->publish(
+            $this->stubsPath . '/controllers/AuthController.stub',
+            $this->projectRoot . '/app/Controllers/AuthController.php',
+            'AuthController'
+        );
     }
 
+    /**
+     * Publishes the authentication and guest middlewares.
+     * * @return void
+     */
     private function publishMiddlewares(): void
     {
         $middlewares = [
@@ -79,12 +95,18 @@ class VeilInstallCommand extends Command
         ];
 
         foreach ($middlewares as $name => $stubFile) {
-            $destination = $this->projectRoot . '/app/Middlewares/' . $name . '.php';
-            $stub        = $this->stubsPath . '/' . $stubFile;
-            $this->publish($stub, $destination, $name);
+            $this->publish(
+                $this->stubsPath . '/' . $stubFile,
+                $this->projectRoot . '/app/Middlewares/' . $name . '.php',
+                $name
+            );
         }
     }
 
+    /**
+     * Publishes all authentication-related Luna views.
+     * * @return void
+     */
     private function publishViews(): void
     {
         $views = [
@@ -92,28 +114,43 @@ class VeilInstallCommand extends Command
             'auth/login.luna.php'     => 'views/login.stub',
             'auth/register.luna.php'  => 'views/register.stub',
             'auth/dashboard.luna.php' => 'views/dashboard.stub',
+            'auth/settings.luna.php'  => 'views/settings.stub',
         ];
 
         foreach ($views as $relative => $stubFile) {
-            $destination = $this->projectRoot . '/views/' . $relative;
-            $stub        = $this->stubsPath . '/' . $stubFile;
-            $this->publish($stub, $destination, $relative);
+            $this->publish(
+                $this->stubsPath . '/' . $stubFile,
+                $this->projectRoot . '/views/' . $relative,
+                $relative
+            );
         }
     }
 
+    /**
+     * Generates and publishes the users table migration with a fresh timestamp.
+     * * @return void
+     */
     private function publishMigration(): void
     {
         $timestamp   = date('Y_m_d_His');
         $destination = $this->projectRoot . '/database/migrations/' . $timestamp . '_create_users_table.php';
-        $stub        = $this->stubsPath . '/migrations/create_users_table.stub';
 
-        $this->publish($stub, $destination, 'create_users_table migration');
+        $this->publish(
+            $this->stubsPath . '/migrations/create_users_table.stub',
+            $destination,
+            'create_users_table migration'
+        );
     }
 
+    /**
+     * Appends the Veil route definitions to the web routes file.
+     * * @return void
+     */
     private function appendRoutes(): void
     {
         $routesFile = $this->projectRoot . '/routes/web.php';
         $stub       = $this->stubsPath . '/routes.stub';
+        $marker     = '// @veil-routes';
 
         if (!file_exists($routesFile)) {
             self::warning("routes/web.php not found. Skipping route injection.");
@@ -125,26 +162,24 @@ class VeilInstallCommand extends Command
             return;
         }
 
-        $routesContent  = file_get_contents($routesFile);
-        $stubContent    = file_get_contents($stub);
-        $marker         = '// @veil-routes';
+        $routesContent = file_get_contents($routesFile);
 
-        // Não duplica se já foi instalado antes
         if (str_contains($routesContent, $marker)) {
             self::warning("Veil routes already present in web.php. Skipping.");
             return;
         }
 
-        file_put_contents($routesFile, $routesContent . PHP_EOL . $stubContent);
+        file_put_contents($routesFile, $routesContent . PHP_EOL . file_get_contents($stub));
         self::success("Routes appended → routes/web.php");
     }
 
-    // =========================================================================
-    // Internal helpers
-    // =========================================================================
-
     /**
-     * Copies a stub to a destination, creating directories as needed.
+     * Copies a stub file to its destination and creates directories if needed.
+     *
+     * @param string $stub The source stub path.
+     * @param string $destination The destination path in the project.
+     * @param string $label A descriptive label for console output.
+     * @return void
      */
     private function publish(string $stub, string $destination, string $label): void
     {

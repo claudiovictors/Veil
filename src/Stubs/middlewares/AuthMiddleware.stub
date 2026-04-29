@@ -1,5 +1,16 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Auth Middleware
+|--------------------------------------------------------------------------
+|
+| This middleware ensures that the incoming request is from an 
+| authenticated user. If the user is not logged in, they will be 
+| redirected to the login page.
+|
+*/
+
 declare(strict_types=1);
 
 namespace App\Middlewares;
@@ -10,10 +21,17 @@ use Slenix\Http\Middlewares\Middleware;
 
 class AuthMiddleware implements Middleware
 {
+    /**
+     * Handle the incoming request.
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param callable $next
+     * @return mixed
+     */
     public function handle(Request $request, Response $response, callable $next): mixed
     {
-        // TODO: Replace with auth()->check() once Auth is complete.
-        if (empty($_SESSION['auth_id'])) {
+        if (!auth()->check()) {
             $response->redirect('/login');
             return null;
         }

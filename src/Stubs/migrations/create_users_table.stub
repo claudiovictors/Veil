@@ -1,5 +1,16 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Create Users Table Migration
+|--------------------------------------------------------------------------
+|
+| This migration defines the database schema for the 'users' table, 
+| including essential fields like name, email, and password, 
+| as well as support for "remember me" functionality.
+|
+*/
+
 declare(strict_types=1);
 
 use Slenix\Database\Migrations\Migration;
@@ -8,6 +19,10 @@ use Slenix\Database\Migrations\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations to create the table.
+     * * @return void
+     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -20,6 +35,10 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations by dropping the table.
+     * * @return void
+     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -1,50 +1,80 @@
 @extends('auth.layout')
 
-@section('title', 'Login')
+@section('title', 'Sign in · Slenix')
 
 @section('content')
+<div class="min-h-screen grid place-items-center px-4 py-12">
+    <div class="w-full max-w-sm">
 
-<div class="logo">
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="48" height="48" rx="10" fill="#1a1a1a"/>
-        <path d="M14 34V14h6v14h10v6H14z" fill="#fff"/>
-        <path d="M30 14h4v12h-4V14z" fill="#fff" opacity=".5"/>
-    </svg>
+        {{-- Logo --}}
+        <div class="flex items-center justify-center gap-2 mb-7">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8">
+                <rect width="32" height="32" rx="7" fill="#0f0f0f"/>
+                <rect x="9"  y="9"  width="6"  height="14" rx="1.5" fill="white"/>
+                <rect x="9"  y="9"  width="14" height="5"  rx="1.5" fill="white" opacity=".45"/>
+                <rect x="9"  y="18" width="14" height="5"  rx="1.5" fill="white" opacity=".45"/>
+                <rect x="17" y="9"  width="6"  height="14" rx="1.5" fill="white" opacity=".7"/>
+            </svg>
+            <span class="font-bold text-[1.05rem] tracking-tight">Slenix</span>
+        </div>
+
+        {{-- Card --}}
+        <div class="bg-white dark:bg-[#1c1c1a] border border-black/[.08] dark:border-white/[.07] rounded-2xl p-7">
+
+            <h2 class="text-[1.1rem] font-semibold tracking-tight mb-1">Welcome back</h2>
+            <p class="text-sm text-[#6b6b6b] dark:text-[#888885] mb-6">Sign in to your account to continue</p>
+
+            @if(isset($error))
+                <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400">
+                    {{ $error }}
+                </div>
+            @endif
+
+            <form action="/login" method="POST">
+                @csrf
+
+                <div class="mb-4">
+                    <label for="email" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
+                        Email address
+                    </label>
+                    <input type="email" id="email" name="email"
+                           value="{{ $old['email'] ?? '' }}"
+                           required autofocus
+                           placeholder="you@example.com"
+                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password"
+                           required
+                           placeholder="••••••••"
+                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
+                </div>
+
+                <div class="flex items-center gap-2 mb-5">
+                    <input type="checkbox" id="remember" name="remember"
+                           class="w-4 h-4 rounded accent-[#0f0f0f] cursor-pointer">
+                    <label for="remember" class="text-sm text-[#6b6b6b] dark:text-[#888885] cursor-pointer select-none">
+                        Remember me for 30 days
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <a href="/register" class="text-[.8rem] text-[#9b9b9b] dark:text-[#555552] hover:text-[#0f0f0f] dark:hover:text-[#ececec] transition">
+                        Create an account
+                    </a>
+                    <button type="submit"
+                            class="h-9 px-4 rounded-md text-sm font-medium bg-[#0f0f0f] dark:bg-[#ececec] text-white dark:text-[#0f0f0f] hover:opacity-80 transition cursor-pointer border-none">
+                        Sign in →
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
 </div>
-
-<div class="card">
-
-    @if(isset($error))
-        <div class="alert alert-error">{{ $error }}</div>
-    @endif
-
-    <form action="/login" method="POST">
-        @csrf
-
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email"
-                   value="@old('email')" required autofocus
-                   placeholder="email@example.com">
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password"
-                   required placeholder="••••••••">
-        </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="remember" name="remember">
-            <label for="remember" style="margin:0;font-weight:400">Remember me</label>
-        </div>
-
-        <div class="form-footer">
-            <a href="/register">Don't have an account?</a>
-            <button type="submit" class="btn btn-primary">Log in</button>
-        </div>
-
-    </form>
-</div>
-
 @endsection

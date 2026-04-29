@@ -1,5 +1,16 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Guest Middleware
+|--------------------------------------------------------------------------
+|
+| This middleware prevents authenticated users from accessing routes 
+| intended only for guests (like login or registration pages). 
+| If logged in, they are redirected to the dashboard.
+|
+*/
+
 declare(strict_types=1);
 
 namespace App\Middlewares;
@@ -10,10 +21,17 @@ use Slenix\Http\Middlewares\Middleware;
 
 class GuestMiddleware implements Middleware
 {
+    /**
+     * Handle the incoming request.
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param callable $next
+     * @return mixed
+     */
     public function handle(Request $request, Response $response, callable $next): mixed
     {
-        // TODO: Replace with auth()->check() once Auth is complete.
-        if (!empty($_SESSION['auth_id'])) {
+        if (auth()->check()) {
             $response->redirect('/dashboard');
             return null;
         }
