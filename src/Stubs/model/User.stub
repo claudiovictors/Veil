@@ -6,13 +6,65 @@ namespace App\Models;
 
 use Slenix\Database\Model;
 use Slenix\Supports\Auth\Traits\Authenticatable;
-use Slenix\Supports\Auth\Traits\HasRoles;
 
+/**
+ * User
+ *
+ * Represents an application user record in the `users` database table.
+ * Implements the Authenticatable trait so that Slenix's auth() helper can
+ * resolve, verify, and persist session state for instances of this model.
+ *
+ * @package App\Models
+ */
 class User extends Model
 {
-    use Authenticatable, HasRoles;
+    use Authenticatable;
 
-    protected string $table    = 'users';
-    protected array  $fillable = ['name', 'email', 'password'];
-    protected array  $hidden   = ['password', 'remember_token'];
+    /**
+     * The database table associated with this model.
+     *
+     * @var string
+     */
+    protected string $table = 'users';
+
+    /**
+     * The name of the primary key column.
+     *
+     * @var string
+     */
+    protected string $primaryKey = 'id';
+
+    /**
+     * Columns that are mass-assignable via User::create() or fill().
+     *
+     * Any column not listed here will be silently ignored during
+     * mass-assignment to prevent unintended data injection.
+     *
+     * @var array<int, string>
+     */
+    protected array $fillable = ['name', 'email', 'password', 'role'];
+
+    /**
+     * Columns excluded from array / JSON serialization.
+     *
+     * The password hash is listed here so it is never accidentally
+     * leaked in API responses or template output.
+     *
+     * @var array<int, string>
+     */
+    protected array $hidden = ['password'];
+
+    /**
+     * Automatic type casting applied when accessing model attributes.
+     *
+     * - 'integer'  → PHP int
+     * - 'datetime' → framework DateTime / Carbon equivalent
+     *
+     * @var array<string, string>
+     */
+    protected array $casts = [
+        'id'         => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 }

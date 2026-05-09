@@ -26,11 +26,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
+            // Surrogate primary key (BIGINT UNSIGNED AUTO_INCREMENT).
             $table->id();
+
+            // Human-readable display name (first + last).
             $table->string('name');
+
+            // Email is the unique identifier used for login.
             $table->string('email')->unique();
+
+            // Store only the hashed value; never store plain text.
             $table->string('password');
-            $table->string('remember_token')->nullable();
+
+            // Authorization role; restricted to known values via ENUM.
+            $table->enum('role', ['admin', 'user'])->default('user');
+
+            // Adds created_at and updated_at TIMESTAMP columns.
             $table->timestamps();
         });
     }

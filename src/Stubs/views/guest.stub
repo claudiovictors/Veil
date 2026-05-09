@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{-- Page title — child views should override this section --}}
+    <title>@yield('title', 'Slenix')</title>
+
+    {{-- Google Fonts: Geist (sans) + Geist Mono --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    {{-- Boxicons icon set (CDN) --}}
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    {{-- Guest / auth page stylesheet --}}
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+
+    {{-- ─────────────────────────────────────────────────────────────────
+        AUTH CONTAINER
+        Centered single-column layout shared by all guest pages
+        (login, register, password reset, etc.).
+    ───────────────────────────────────────────────────────────────────── --}}
+    <main class="auth-container">
+
+        {{-- ── BRAND MARK ──────────────────────────────────────────────── --}}
+        <div class="auth-logo-area">
+            <svg class="svg-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect class="bg-rect" width="32" height="32" rx="7"/>
+                <rect class="fg-rect" x="9" y="9" width="6" height="14" rx="1.5"/>
+                <rect class="fg-rect" x="9" y="9" width="14" height="5" rx="1.5" opacity=".45"/>
+                <rect class="fg-rect" x="9" y="18" width="14" height="5" rx="1.5" opacity=".45"/>
+                <rect class="fg-rect" x="17" y="9" width="6" height="14" rx="1.5" opacity=".7"/>
+            </svg>
+            <span>Slenix</span>
+        </div>
+
+        {{-- ── AUTH CARD ────────────────────────────────────────────────── --}}
+        {{-- Child views inject their form and header content here. --}}
+        <div class="card">
+            @yield('content')
+        </div>
+
+    </main>
+
+</body>
+</html>

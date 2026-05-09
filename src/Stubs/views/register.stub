@@ -1,93 +1,131 @@
-@extends('auth.layout')
+@extends('layouts.guest')
 
-@section('title', 'Create account · Slenix')
+@section('title', 'Create Account — Veil')
 
 @section('content')
-<div class="min-h-screen grid place-items-center px-4 py-12">
-    <div class="w-full max-w-sm">
-
-        {{-- Logo --}}
-        <div class="flex items-center justify-center gap-2 mb-7">
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8">
-                <rect width="32" height="32" rx="7" fill="#0f0f0f"/>
-                <rect x="9"  y="9"  width="6"  height="14" rx="1.5" fill="white"/>
-                <rect x="9"  y="9"  width="14" height="5"  rx="1.5" fill="white" opacity=".45"/>
-                <rect x="9"  y="18" width="14" height="5"  rx="1.5" fill="white" opacity=".45"/>
-                <rect x="17" y="9"  width="6"  height="14" rx="1.5" fill="white" opacity=".7"/>
-            </svg>
-            <span class="font-bold text-[1.05rem] tracking-tight">Slenix</span>
-        </div>
-
-        {{-- Card --}}
-        <div class="bg-white dark:bg-[#1c1c1a] border border-black/[.08] dark:border-white/[.07] rounded-2xl p-7">
-
-            <h2 class="text-[1.1rem] font-semibold tracking-tight mb-1">Create your account</h2>
-            <p class="text-sm text-[#6b6b6b] dark:text-[#888885] mb-6">Get started with Slenix today</p>
-
-            @if(isset($error))
-                <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400">
-                    {{ $error }}
-                </div>
-            @endif
-
-            <form action="/register" method="POST">
-                @csrf
-
-                <div class="mb-4">
-                    <label for="name" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
-                        Full name
-                    </label>
-                    <input type="text" id="name" name="name"
-                           value="{{ $old['name'] ?? '' }}"
-                           required autofocus
-                           placeholder="John Doe"
-                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
-                </div>
-
-                <div class="mb-4">
-                    <label for="email" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
-                        Email address
-                    </label>
-                    <input type="email" id="email" name="email"
-                           value="{{ $old['email'] ?? '' }}"
-                           required
-                           placeholder="you@example.com"
-                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
-                </div>
-
-                <div class="mb-4">
-                    <label for="password" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
-                        Password
-                    </label>
-                    <input type="password" id="password" name="password"
-                           required
-                           placeholder="Min. 8 characters"
-                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
-                </div>
-
-                <div class="mb-5">
-                    <label for="password_confirmation" class="block text-xs font-medium text-[#6b6b6b] dark:text-[#888885] mb-1.5 tracking-wide">
-                        Confirm password
-                    </label>
-                    <input type="password" id="password_confirmation" name="password_confirmation"
-                           required
-                           placeholder="••••••••"
-                           class="w-full h-9 px-3 rounded-md text-sm bg-[#fafaf8] dark:bg-[#161615] border border-black/[.12] dark:border-white/[.12] text-[#0f0f0f] dark:text-[#ececec] placeholder-[#9b9b9b] dark:placeholder-[#555552] outline-none transition focus:border-[#9b9b9b] dark:focus:border-[#555552] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/5">
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <a href="/login" class="text-[.8rem] text-[#9b9b9b] dark:text-[#555552] hover:text-[#0f0f0f] dark:hover:text-[#ececec] transition">
-                        Already have an account?
-                    </a>
-                    <button type="submit"
-                            class="h-9 px-4 rounded-md text-sm font-medium bg-[#0f0f0f] dark:bg-[#ececec] text-white dark:text-[#0f0f0f] hover:opacity-80 transition cursor-pointer border-none">
-                        Create account →
-                    </button>
-                </div>
-
-            </form>
-        </div>
-
+    {{-- ── Card Header ─────────────────────────────────────────────────── --}}
+    <div class="card-header">
+        <h1 class="card-title">Create your account</h1>
+        <p class="card-subtitle">Get started with Veil today</p>
     </div>
-</div>
+
+    {{-- ── Flash Error ──────────────────────────────────────────────────── --}}
+    @if (flash()->has('error'))
+        <div class="message-error">{{ flash()->get('error') }}</div>
+    @endif
+
+    {{-- ── Registration Form ────────────────────────────────────────────── --}}
+    {{--
+        POST /sign-up/user → AuthController@store
+        On success the controller creates the user, logs them in automatically,
+        and redirects to the dashboard. On failure it redirects back with a
+        flash error so the form is re-rendered with @old() values.
+    --}}
+    <form action="{{ route('register') }}" autocomplete="off" method="POST">
+
+        @csrf
+
+        {{-- Full Name ───────────────────────────────────────────────────── --}}
+        <div class="form-group">
+            <label for="fullname" class="form-label">Full name</label>
+            <input
+                type="text"
+                id="fullname"
+                name="fullname"
+                class="form-input"
+                value="@old('fullname')"
+                placeholder="John Smith"
+                required
+                autocomplete="name"
+            >
+        </div>
+
+        {{-- Email ──────────────────────────────────────────────────────── --}}
+        <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-input"
+                value="@old('email')"
+                placeholder="name@example.com"
+                required
+                autocomplete="email"
+            />
+        </div>
+
+        {{-- Password (with show/hide toggle) ───────────────────────────── --}}
+        <div class="form-group" style="position: relative;">
+            <label for="password" class="form-label">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input"
+                placeholder="••••••••"
+                required
+                autocomplete="new-password"
+            />
+            <i
+                class="bx bx-show password-toggle"
+                id="password-toggle"
+                onclick="togglePasswordVisibility('password', 'password-toggle')"
+                title="Show / hide password"
+                style="cursor: pointer; position: absolute; right: 12px; top: 50%; transform: translateY(50%);"
+            ></i>
+        </div>
+
+        {{-- Confirm Password ─────────────────────────────────────────────── --}}
+        <div class="form-group">
+            <label for="confirm_password" class="form-label">Confirm password</label>
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                class="form-input"
+                placeholder="••••••••"
+                required
+                autocomplete="new-password"
+            >
+            <i
+                class="bx bx-show password-toggle"
+                id="confirm-password-toggle"
+                onclick="togglePasswordVisibility('confirm_password', 'confirm-password-toggle')"
+                title="Show / hide password"
+            ></i>
+        </div>
+
+        {{-- Actions ─────────────────────────────────────────────────────── --}}
+        <div class="card-footer">
+            <a href="{{ route('show.login') }}" class="link-sub">Already have an account?</a>
+            <button type="submit" class="btn">Create account &rarr;</button>
+        </div>
+
+    </form>
+
+    {{-- ── Inline Script ────────────────────────────────────────────────── --}}
+    <script>
+        /**
+         * Toggles the visibility of a password input field.
+         *
+         * Swaps the input type between "password" and "text", and updates
+         * the Boxicons eye icon class to reflect the current state.
+         *
+         * @param {string} inputId  - The `id` attribute of the password <input>.
+         * @param {string} iconId   - The `id` attribute of the Boxicons <i> toggle.
+         * @returns {void}
+         */
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+
+            if (!input || !icon) return;
+
+            const isHidden = input.type === 'password';
+
+            input.type     = isHidden ? 'text' : 'password';
+            icon.className = isHidden ? 'bx bx-hide password-toggle' : 'bx bx-show password-toggle';
+        }
+    </script>
 @endsection
