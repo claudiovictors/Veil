@@ -6,65 +6,59 @@ namespace App\Models;
 
 use Slenix\Database\Model;
 use Slenix\Supports\Auth\Traits\Authenticatable;
+use Slenix\Supports\Auth\Traits\HasRoles;
 
 /**
- * User
+ * User Model
  *
- * Represents an application user record in the `users` database table.
- * Implements the Authenticatable trait so that Slenix's auth() helper can
- * resolve, verify, and persist session state for instances of this model.
- *
- * @package App\Models
+ * Represents an application user. Extends Slenix's base Model
+ * and uses the Authenticatable trait to integrate with the auth
+ * system, and HasRoles for role-based access control.
  */
 class User extends Model
 {
-    use Authenticatable;
+    use Authenticatable, HasRoles;
 
     /**
      * The database table associated with this model.
-     *
-     * @var string
      */
     protected string $table = 'users';
 
     /**
-     * The name of the primary key column.
-     *
-     * @var string
+     * The primary key column name.
      */
     protected string $primaryKey = 'id';
 
     /**
-     * Columns that are mass-assignable via User::create() or fill().
+     * Attributes that are mass-assignable.
      *
-     * Any column not listed here will be silently ignored during
-     * mass-assignment to prevent unintended data injection.
-     *
-     * @var array<int, string>
+     * @var array<string>
      */
-    protected array $fillable = ['name', 'email', 'password', 'role'];
+    protected array $fillable = [
+        'name',
+        'email',
+        'email_verified_at',
+        'password',
+    ];
 
     /**
-     * Columns excluded from array / JSON serialization.
+     * Attributes excluded from serialization (e.g. JSON responses).
      *
-     * The password hash is listed here so it is never accidentally
-     * leaked in API responses or template output.
-     *
-     * @var array<int, string>
+     * @var array<string>
      */
-    protected array $hidden = ['password'];
+    protected array $hidden = [
+        'password',
+    ];
 
     /**
-     * Automatic type casting applied when accessing model attributes.
-     *
-     * - 'integer'  → PHP int
-     * - 'datetime' → framework DateTime / Carbon equivalent
+     * Attribute type casts applied when reading from the database.
      *
      * @var array<string, string>
      */
     protected array $casts = [
-        'id'         => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'id'                => 'integer',
+        'email_verified_at' => 'datetime',
+        'created_at'        => 'datetime',
+        'updated_at'        => 'datetime',
     ];
 }

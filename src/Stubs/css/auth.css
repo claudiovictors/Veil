@@ -1,56 +1,72 @@
-/* ══════════════════════════════════
-    VARIÁVEIS — Tema Light e Dark
-══════════════════════════════════ */
+/* =====================================================
+   AUTH STYLES: Theme variables for light and dark mode
+   ===================================================== */
 
 :root {
-    --bg: #f5f4f1;
+    --bg: #f8fafc;
     --surface: #ffffff;
-    --surface2: #fafaf8;
-    --border: rgba(0, 0, 0, .08);
-    --border-md: rgba(0, 0, 0, .12);
-    --text: #0f0f0f;
-    --text-2: #6b6b6b;
-    --text-3: #9b9b9b;
-    --accent: #0f0f0f;
+    --surface2: #f1f5f9;
+    --border: rgba(0, 0, 0, .07);
+    --border-md: rgba(0, 0, 0, .13);
+    --text: #111827;
+    --text-2: #6b7280;
+    --text-3: #9ca3af;
+
+    /* Primary — Emerald Filament */
+    --accent: #10b981;
+    --fi-primary-hover: #059669;
     --accent-fg: #ffffff;
-    --danger: #d92121;
-    --danger-bg: #fff5f5;
-    --danger-bd: #fdd;
-    --success: #16a34a;
+
+    --danger: #ef4444;
+    --danger-bg: #fef2f2;
+    --danger-bd: #fecaca;
+    --success: #22c55e;
     --success-bg: #f0fdf4;
     --success-bd: #bbf7d0;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --warning-bd: #fde68a;
+    --info: #3b82f6;
+    --info-bg: #eff6ff;
+    --info-bd: #bfdbfe;
 
-    /* Variáveis auxiliares para o Logo */
-    --logo-bg: #0f0f0f;
-    --logo-fg: #ffffff;
+    --logo-bg: #1e293b;
+    --logo-fg: #10b981;
 }
 
 html[data-theme="dark"] {
-    --bg: #111110;
-    --surface: #1c1c1a;
-    --surface2: #161615;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #162032;
     --border: rgba(255, 255, 255, .07);
-    --border-md: rgba(255, 255, 255, .12);
-    --text: #ececec;
-    --text-2: #888885;
-    --text-3: #555552;
-    --accent: #ececec;
-    --accent-fg: #111110;
+    --border-md: rgba(255, 255, 255, .13);
+    --text: #f1f5f9;
+    --text-2: #94a3b8;
+    --text-3: #475569;
+
+    --accent: #10b981;
+    --accent-fg: #ffffff;
+
     --danger: #f87171;
-    --danger-bg: #1f1010;
+    --danger-bg: #1f1212;
     --danger-bd: rgba(248, 113, 113, .2);
     --success: #4ade80;
     --success-bg: #0a1f12;
     --success-bd: rgba(74, 222, 128, .2);
+    --warning: #fbbf24;
+    --warning-bg: #1f1a0a;
+    --warning-bd: rgba(251, 191, 36, .2);
+    --info: #60a5fa;
+    --info-bg: #0a1020;
+    --info-bd: rgba(96, 165, 250, .2);
 
-    /* Variáveis auxiliares para o Logo (Dark) */
-    --logo-bg: #ececec;
-    --logo-fg: #111110;
+    --logo-bg: #10b981;
+    --logo-fg: #0f172a;
 }
 
-/* ══════════════════════════════════
-    RESET & BASE
-══════════════════════════════════ */
+/* =====================================================
+   BASE RESET
+   ===================================================== */
 * {
     margin: 0;
     padding: 0;
@@ -71,18 +87,18 @@ body {
 }
 
 a {
-    color: var(--text);
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.15s;
 }
 
 a:hover {
-    color: var(--text-2);
+    color: #d97706;
 }
 
-/* ══════════════════════════════════
-    TIPOGRAFIA
-══════════════════════════════════ */
+/* =====================================================
+   TYPOGRAPHY
+   ===================================================== */
 h1,
 h2,
 h3,
@@ -94,30 +110,35 @@ h6 {
     color: var(--text);
 }
 
-/* ══════════════════════════════════
-    BOTÕES
-══════════════════════════════════ */
+/* =====================================================
+   BUTTONS
+   ===================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background-color: var(--accent);
     color: var(--accent-fg);
-    border: 1px solid transparent;
-    /* mantendo padrão de borda 1px */
-    border-radius: 6px;
-    padding: 8px 16px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 9px 16px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: transform 0.15s, opacity 0.15s, background-color 0.15s;
+    transition: all 0.15s;
     text-decoration: none;
     gap: 6px;
+    font-family: inherit;
 }
 
 .btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background-color: var(--fi-primary-hover);
+    border-color: #d97706;
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .35);
 }
 
 .btn-full {
@@ -125,11 +146,10 @@ h6 {
     padding: 10px 16px;
 }
 
-/* ══════════════════════════════════
-    FORMULÁRIOS & INPUTS
-══════════════════════════════════ */
+/* =====================================================
+   FORMS & INPUTS
+   ===================================================== */
 .form-group {
-    position: relative;
     margin-bottom: 20px;
 }
 
@@ -138,19 +158,24 @@ h6 {
     font-size: 14px;
     font-weight: 500;
     color: var(--text);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+}
+
+.form-label sup {
+    color: var(--danger);
+    font-size: 12px;
 }
 
 .form-input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 9px 12px;
     font-family: 'Geist', sans-serif;
     font-size: 14px;
     color: var(--text);
-    background-color: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    transition: border-color 0.15s;
+    background-color: var(--surface);
+    border: 1px solid var(--border-md);
+    border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .form-input::placeholder {
@@ -159,48 +184,223 @@ h6 {
 
 .form-input:focus {
     outline: none;
-    border-color: var(--border-md);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .15);
+    background-color: var(--surface);
 }
 
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 28px;
-    margin-top: -4px;
-    /* ajuste sutil após o form-group/input */
-}
-
-.password-toggle {
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    cursor: pointer;
-    color: var(--text-2);
-    font-size: 1.2rem;
-    transform: translateY(30%);
-}
-
-.checkbox-input {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent);
-    cursor: pointer;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+.form-input:disabled {
+    opacity: .55;
+    cursor: not-allowed;
     background-color: var(--surface2);
 }
 
-.checkbox-label {
+.form-hint {
+    display: block;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 5px;
+}
+
+.form-error {
+    display: block;
+    font-size: 13px;
+    color: var(--danger);
+    margin-top: 3px;
+}
+
+.form-input--error {
+    border-color: var(--danger);
+}
+
+.form-input--error:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, .15);
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-check-input {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border-md);
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.form-check-label {
     font-size: 14px;
     color: var(--text-2);
     cursor: pointer;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group i {
+    position: absolute;
+    left: 12px;
+    color: var(--text-3);
+    font-size: 17px;
+    pointer-events: none;
+}
+
+.input-group .form-input {
+    padding-left: 38px;
+}
+
+select.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+/* Password input */
+.input-password-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-password-wrap .form-input {
+    padding-right: 40px;
+}
+
+.pwd-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: color 0.15s;
     user-select: none;
 }
 
-/* ══════════════════════════════════
-    LAYOUT PRINCIPAL
-══════════════════════════════════ */
+.pwd-eye:hover {
+    color: var(--text-2);
+}
+
+/* Password strength */
+.pwd-strength-bar {
+    width: 100%;
+    height: 4px;
+    background-color: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.pwd-strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.pwd-strength-fill.weak {
+    background-color: var(--danger);
+}
+
+.pwd-strength-fill.fair {
+    background-color: var(--warning);
+}
+
+.pwd-strength-fill.good {
+    background-color: var(--info);
+}
+
+.pwd-strength-fill.strong {
+    background-color: var(--success);
+}
+
+.pwd-strength-label {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.pwd-strength-label.weak {
+    color: var(--danger);
+}
+
+.pwd-strength-label.fair {
+    color: var(--warning);
+}
+
+.pwd-strength-label.good {
+    color: var(--info);
+}
+
+.pwd-strength-label.strong {
+    color: var(--success);
+}
+
+/* =====================================================
+   ALERTS
+   ===================================================== */
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    border: 1px solid var(--border);
+    background-color: var(--surface2);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.alert i {
+    font-size: 18px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.alert-success {
+    background-color: var(--success-bg);
+    border-color: var(--success-bd);
+    color: var(--success);
+}
+
+.alert-error {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-bd);
+    color: var(--danger);
+}
+
+.alert-warning {
+    background-color: var(--warning-bg);
+    border-color: var(--warning-bd);
+    color: var(--warning);
+}
+
+.alert-info {
+    background-color: var(--info-bg);
+    border-color: var(--info-bd);
+    color: var(--info);
+}
+
+/* =====================================================
+   AUTH LAYOUT
+   ===================================================== */
 .auth-container {
     flex: 1;
     display: flex;
@@ -214,14 +414,14 @@ h6 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 32px;
-    gap: 16px;
+    margin-bottom: 28px;
+    gap: 14px;
 }
 
 .auth-logo-area span {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 18px;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     color: var(--text);
 }
 
@@ -240,17 +440,17 @@ h6 {
     transition: fill 0.15s;
 }
 
-/* ══════════════════════════════════
-    CARDS
-══════════════════════════════════ */
+/* =====================================================
+   CARD STYLES
+   ===================================================== */
 .card {
     background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    border: 1px solid var(--border-md);
+    border-radius: 14px;
     padding: 32px 28px;
     width: 100%;
     max-width: 380px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
 }
 
 .card-header {
@@ -286,8 +486,9 @@ h6 {
     font-size: 14px;
     font-weight: 500;
     color: var(--text-2);
+    transition: color 0.15s;
 }
 
 .link-sub:hover {
-    color: var(--text);
+    color: var(--accent);
 }

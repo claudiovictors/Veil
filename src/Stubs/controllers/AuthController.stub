@@ -7,29 +7,23 @@ namespace App\Controllers;
 use App\Models\User;
 use Slenix\Http\Request;
 use Slenix\Http\Response;
-use Slenix\Supports\Libraries\Str;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 
 /**
  * AuthController
  *
- * Handles all authentication flows: login, registration, profile updates,
- * password changes, account deletion, and logout. Guest-only routes (login,
- * register) are protected by the 'guest' middleware; user-specific actions
- * are protected by the 'auth' middleware — both defined in the router
- * configuration.
- *
- * @package App\Controllers
+ * Handles all authentication-related actions including login,
+ * registration, and logout using Slenix's built-in auth system.
  */
 class AuthController
 {
     /**
      * Display the login page.
      *
-     * @param  Request  $req The incoming HTTP request.
-     * @param  Response $res The HTTP response.
-     * @return mixed         Rendered login view.
+     * GET /login
      */
-    public function index(Request $req, Response $res): mixed
+    public function index(Request $req, Response $res)
     {
         return view('auth.login');
     }
@@ -37,330 +31,73 @@ class AuthController
     /**
      * Display the registration page.
      *
-     * @param  Request  $req The incoming HTTP request.
-     * @param  Response $res The HTTP response.
-     * @return mixed         Rendered registration view.
+     * GET /register
      */
-    public function showRegister(Request $req, Response $res): mixed
+    public function create(Request $req, Response $res)
     {
         return view('auth.register');
     }
 
     /**
-     * Handle a login form submission.
+     * Handle a login attempt.
      *
-     * Validates the submitted credentials against the database. If the
-     * "remember" checkbox is checked, a persistent session cookie is issued
-     * (duration configured in auth settings); otherwise the session expires
-     * when the browser closes.
+     * Validates credentials via LoginRequest and attempts authentication.
+     * Redirects to the dashboard on success, or back to login with an
+     * error flash message on failure.
      *
-     * Validation steps (in order):
-     *  1. Both email and password must be non-empty.
-     *  2. An account with the given email must exist.
-     *  3. The password must match the stored hash.
-     *
-     * @param  Request  $req The incoming HTTP request.
-     *                       Expected inputs: email (string), password (string),
-     *                       remember (checkbox, optional).
-     * @param  Response $res The HTTP response.
-     * @return mixed         Redirect to dashboard on success, or back with an
-     *                       error flash message on failure.
+     * POST /login
      */
-    public function login(Request $req, Response $res): mixed
+    public function login(LoginRequest $req, Response $res)
     {
-        $email    = Str::escape($req->input('email', ''));
-        $password = Str::escape($req->input('password', ''));
+        $data = $req->validated();
 
-        // Determine whether the user wants a persistent session.
-        // The checkbox sends 'on' when checked; cast to boolean.
-        $remember = $req->input('remember', null) === 'on';
-
-        // 1. Ensure both fields are present.
-        if (Str::isEmpty($email) || Str::isEmpty($password)) {
-            flash()->error('Please enter your credentials.');
-            return redirect()->back();
+        if (!auth()->attempt($data)) {
+            return redirect()->withFlash('error', 'Invalid credentials.')->to('/login');
         }
 
-        // 2. Verify the account exists before attempting password verification.
-        if (!User::where('email', $email)->exists()) {
-            flash()->error('No account found associated with this email address.');
-            return redirect()->back();
-        }
-
-        // 3. Attempt authentication; pass $remember to control cookie lifetime.
-        if (!auth()->attempt(['email' => $email, 'password' => $password], $remember)) {
-            flash()->error('Incorrect email or password.');
-            return redirect()->back();
-        }
-
-        return redirect()->route('dashboard.show');
+        return redirect('/dashboard');
     }
 
     /**
-     * Handle a registration form submission.
+     * Handle a new user registration.
      *
-     * Creates a new user account and immediately authenticates them with a
-     * persistent session. The following validation rules are enforced:
+     * Validates the request via RegisterRequest, creates the user record
+     * with a hashed password, and authenticates them immediately.
+     * Redirects to the dashboard on success, or back to register on failure.
      *
-     *  - All fields (fullname, email, password, confirm_password) are required.
-     *  - Full name must pass the validate_name() helper (first + last name).
-     *  - Email must be a valid RFC address format.
-     *  - Password must be at least 8 characters long.
-     *  - Password and confirmation must match.
-     *  - The email address must not already be registered.
-     *
-     * @param  Request  $req The incoming HTTP request.
-     *                       Expected inputs: fullname (string), email (string),
-     *                       password (string), confirm_password (string).
-     * @param  Response $res The HTTP response.
-     * @return mixed         Redirect to dashboard on success, or back with an
-     *                       error flash message on the first failing rule.
+     * POST /register
      */
-    public function store(Request $req, Response $res): mixed
+    public function store(RegisterRequest $req, Response $res)
     {
-        $fullname        = Str::escape($req->input('fullname'));
-        $email           = Str::escape($req->input('email'));
-        $password        = Str::escape($req->input('password'));
-        $confirmPassword = Str::escape($req->input('confirm_password'));
+        $data = $req->validated();
 
-        // ── Field presence ──────────────────────────────────────────────
-        if (Str::isEmpty($fullname) || Str::isEmpty($email) || Str::isEmpty($password) || Str::isEmpty($confirmPassword)) {
-            flash()->error('Please fill in all required fields.');
-            return redirect()->back();
-        }
-
-        // ── Name format (requires first and last name) ──────────────────
-        if (!validate_name($fullname)) {
-            flash()->error('Please enter a valid first and last name.');
-            return redirect()->back();
-        }
-
-        // ── Email format ────────────────────────────────────────────────
-        if (!Str::isEmail($email)) {
-            flash()->error('Please enter a valid email address.');
-            return redirect()->back();
-        }
-
-        // ── Password length ─────────────────────────────────────────────
-        if (Str::length($password) < 8) {
-            flash()->error('Password must be at least 8 characters long.');
-            return redirect()->back();
-        }
-
-        // ── Password confirmation ───────────────────────────────────────
-        if (!Str::equals($password, $confirmPassword)) {
-            flash()->error('Passwords do not match.');
-            return redirect()->back();
-        }
-
-        // ── Email uniqueness ────────────────────────────────────────────
-        if (User::where('email', $email)->exists()) {
-            flash()->error('This email address is already registered.');
-            return redirect()->back();
-        }
-
-        // ── Persist the new user ────────────────────────────────────────
         $user = User::create([
-            'name'     => $fullname,
-            'email'    => $email,
-            'password' => hash_make($password),
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
         ]);
 
         if (!$user) {
-            flash()->error('An unexpected error occurred during registration. Please try again.');
-            return redirect()->back();
+            return redirect()->withFlash('error', 'Failed to create account. Please try again.')->to('/register');
         }
 
-        // Log the new user in automatically with a persistent session.
-        auth()->login($user, true);
+        auth()->login($user);
 
-        return redirect()->route('dashboard.show');
+        return redirect('/dashboard')->withFlash('success', 'Account created successfully.');
     }
 
     /**
-     * Update the authenticated user's profile information.
+     * Log the authenticated user out.
      *
-     * Validates that the request belongs to the currently authenticated user
-     * (the user_id in the form must match auth()->user()->id) before applying
-     * any changes. This prevents IDOR attacks from crafted form submissions.
+     * Destroys the current session and redirects to the login page
+     * with a success flash message.
      *
-     * @param  Request  $req The incoming HTTP request.
-     *                       Expected inputs: user_id (int), fullname (string),
-     *                       email (string).
-     * @param  Response $res The HTTP response.
-     * @return mixed         Redirect back with a success or error flash message.
+     * POST /logout
      */
-    public function update(Request $req, Response $res): mixed
+    public function logout(Request $req, Response $res)
     {
-        $userId   = Str::escape($req->input('user_id'));
-        $fullname = Str::escape($req->input('fullname'));
-        $email    = Str::escape($req->input('email'));
-
-        // ── All fields required ─────────────────────────────────────────
-        if (Str::isEmpty($userId) || Str::isEmpty($fullname) || Str::isEmpty($email)) {
-            flash()->error('Please fill in all required fields.');
-            return redirect()->back();
-        }
-
-        // ── Ownership check: submitted ID must match the session user ───
-        if (!Str::equals((string) $userId, (string) auth()->user()->id)) {
-            flash()->error('Unauthorized action.');
-            return redirect()->back();
-        }
-
-        $user        = User::find($userId);
-        $user->name  = $fullname;
-        $user->email = $email;
-
-        if (!$user->save()) {
-            flash()->error('An error occurred while updating your profile. Please try again.');
-            return redirect()->back();
-        }
-
-        flash()->success('Your profile has been updated successfully.');
-        return redirect()->back();
-    }
-
-    /**
-     * Permanently delete the authenticated user's account.
-     *
-     * Requires the user to confirm intent by typing the word "delete" into
-     * a dedicated confirmation field. This two-factor confirmation (ID ownership
-     * check + explicit text confirmation) prevents accidental or malicious
-     * account deletions.
-     *
-     * Validation steps (in order):
-     *  1. Both user_id and text fields must be non-empty.
-     *  2. The submitted user_id must match the authenticated user's ID (IDOR prevention).
-     *  3. The confirmation text must equal exactly "delete" (case-sensitive).
-     *  4. The account deletion must succeed at the database level.
-     *
-     * On success, the user's session is terminated and they are redirected
-     * to the login page.
-     *
-     * @param  Request  $req The incoming HTTP request.
-     *                       Expected inputs: user_id (int), text (string — must be "delete").
-     * @param  Response $res The HTTP response.
-     * @return mixed         Redirect to login on success, or back with an
-     *                       error flash message on any failing step.
-     */
-    public function delete(Request $req, Response $res): mixed
-    {
-        $userId = Str::escape($req->input('user_id'));
-        $text   = Str::escape($req->input('text'));
-
-        // ── All fields required ─────────────────────────────────────────
-        if (Str::isEmpty($userId) || Str::isEmpty($text)) {
-            flash()->error('Please fill in all required fields to confirm account deletion.');
-            return redirect()->back();
-        }
-
-        // ── Ownership check: submitted ID must match the session user ───
-        if (!Str::equals((string) $userId, (string) auth()->user()->id)) {
-            flash()->error('You are not authorised to perform this action.');
-            return redirect()->back();
-        }
-
-        // ── Explicit confirmation: user must type "delete" exactly ──────
-        if (!Str::equals($text, 'delete')) {
-            flash()->error('Confirmation text does not match. Please type "delete" to proceed.');
-            return redirect()->back();
-        }
-
-        $user = User::find($userId);
-
-        // ── Attempt deletion at the database level ──────────────────────
-        if (!$user->delete()) {
-            flash()->error('An error occurred while deleting your account. Please try again.');
-            return redirect()->back();
-        }
-
-        flash()->success('Your account has been permanently deleted. We hope to see you again.');
-        return redirect()->route('show.login');
-    }
-
-    /**
-     * Update the authenticated user's password.
-     *
-     * Verifies the current password before accepting the new one to prevent
-     * account takeover via a hijacked session. Enforces the same minimum-length
-     * and confirmation rules applied at registration.
-     *
-     * @param  Request  $req The incoming HTTP request.
-     *                       Expected inputs: user_id (int), current_password (string),
-     *                       new_password (string), confirm_new_password (string).
-     * @param  Response $res The HTTP response.
-     * @return mixed         Redirect back with a success or error flash message.
-     */
-    public function updatedPassword(Request $req, Response $res): mixed
-    {
-        $userId             = Str::escape($req->input('user_id'));
-        $currentPassword    = Str::escape($req->input('current_password'));
-        $newPassword        = Str::escape($req->input('new_password'));
-        $confirmNewPassword = Str::escape($req->input('confirm_new_password'));
-
-        // ── All fields required ─────────────────────────────────────────
-        if (Str::isEmpty($userId) || Str::isEmpty($currentPassword) || Str::isEmpty($newPassword) || Str::isEmpty($confirmNewPassword)) {
-            flash()->error('Please fill in all required fields.');
-            return redirect()->back();
-        }
-
-        // ── Ownership check ─────────────────────────────────────────────
-        if (!Str::equals((string) $userId, (string) auth()->user()->id)) {
-            flash()->error('You are not authorised to perform this action.');
-            return redirect()->back();
-        }
-
-        $user = User::find($userId);
-
-        // ── Verify the current password before allowing any change ──────
-        if (!hash_check($currentPassword, $user->password)) {
-            flash()->error('The current password you entered is incorrect.');
-            return redirect()->back();
-        }
-
-        // ── New password length ─────────────────────────────────────────
-        if (Str::length($newPassword) < 8) {
-            flash()->error('Your new password must be at least 8 characters long.');
-            return redirect()->back();
-        }
-
-        // ── New password confirmation ───────────────────────────────────
-        if (!Str::equals($newPassword, $confirmNewPassword)) {
-            flash()->error('The new passwords do not match.');
-            return redirect()->back();
-        }
-
-        $user->password = hash_make($newPassword);
-
-        if (!$user->save()) {
-            flash()->error('An error occurred while updating your password. Please try again.');
-            return redirect()->back();
-        }
-
-        flash()->success('Your password has been updated successfully.');
-        return redirect()->back();
-    }
-
-    /**
-     * Log the authenticated user out and redirect to the login page.
-     *
-     * If no active session is found (e.g. the user navigates directly to
-     * /logout without being authenticated), the method safely redirects to
-     * the login page without throwing an error.
-     *
-     * @param  Request  $req The incoming HTTP request.
-     * @param  Response $res The HTTP response.
-     * @return void
-     */
-    public function logout(Request $req, Response $res): void
-    {
-        if (!auth()->check()) {
-            redirect()->route('show.login');
-            return;
-        }
-
         auth()->logout();
-        redirect()->route('show.login');
+
+        return redirect()->withFlash('success', 'Logout successful.')->to('/login');
     }
 }

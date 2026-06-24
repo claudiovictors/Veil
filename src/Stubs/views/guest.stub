@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ config('app.locale') }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {{-- Page title — child views should override this section --}}
-    <title>@yield('title', 'Slenix')</title>
+    {{-- Favicon --}}
+    <link rel="shortcut icon" href="{{ asset('logo.svg') }}" type="image/x-icon">
 
-    {{-- Google Fonts: Geist (sans) + Geist Mono --}}
+    {{-- Page title — child views override this via @section('title') --}}
+    <title>@yield('title', 'Slenix - Veil')</title>
+
+    {{-- Fonts: Poppins (headings) + Roboto (body) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
-    {{-- Boxicons icon set (CDN) --}}
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    {{-- Icons --}}
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-    {{-- Guest / auth page stylesheet --}}
-    <link rel="stylesheet" href="/css/auth.css">
+    {{-- Auth stylesheet --}}
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+
+    {{-- Favicon --}}
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}" type="image/x-icon">
 </head>
-<body>
+
+<body class="login-body">
 
     {{-- ─────────────────────────────────────────────────────────────────
         AUTH CONTAINER
@@ -31,23 +37,44 @@
 
         {{-- ── BRAND MARK ──────────────────────────────────────────────── --}}
         <div class="auth-logo-area">
-            <svg class="svg-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect class="bg-rect" width="32" height="32" rx="7"/>
-                <rect class="fg-rect" x="9" y="9" width="6" height="14" rx="1.5"/>
-                <rect class="fg-rect" x="9" y="9" width="14" height="5" rx="1.5" opacity=".45"/>
-                <rect class="fg-rect" x="9" y="18" width="14" height="5" rx="1.5" opacity=".45"/>
-                <rect class="fg-rect" x="17" y="9" width="6" height="14" rx="1.5" opacity=".7"/>
-            </svg>
+            <img src="{{ asset('logo.png') }}" alt="Slenix Veil" width="40" height="40">
             <span>Slenix</span>
         </div>
 
         {{-- ── AUTH CARD ────────────────────────────────────────────────── --}}
-        {{-- Child views inject their form and header content here. --}}
+        {{-- Child views inject their form and heading content here. --}}
         <div class="card">
             @yield('content')
         </div>
 
     </main>
+
+    <script>
+        /**
+         * Toggles the visibility of a password input field.
+         *
+         * Swaps the input type between "password" and "text", and updates
+         * the Boxicons eye icon to reflect the current state.
+         *
+         * @param {string} inputId - The `id` of the password <input>.
+         * @param {string} iconId  - The `id` of the Boxicons <i> toggle element.
+         * @returns {void}
+         */
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+
+            if (!input || !icon) return;
+
+            const isHidden = input.type === 'password';
+
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.replace(
+                isHidden ? 'bx-show' : 'bx-hide',
+                isHidden ? 'bx-hide' : 'bx-show'
+            );
+        }
+    </script>
 
 </body>
 </html>

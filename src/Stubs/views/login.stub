@@ -1,111 +1,98 @@
 @extends('layouts.guest')
 
-@section('title', 'Sign In — Veil')
+@section('title', 'Login — Veil Slenix')
 
 @section('content')
-    {{-- ── Card Header ─────────────────────────────────────────────────── --}}
-    <div class="card-header">
-        <h1 class="card-title">Welcome back</h1>
-        <p class="card-subtitle">Sign in to your account to continue</p>
+
+{{-- ── CARD HEADER ─────────────────────────────────────────────────────── --}}
+<div class="card-header">
+    <h1 class="card-title">Welcome back</h1>
+    <p class="card-subtitle">Sign in to your account to continue</p>
+</div>
+
+{{-- ── FLASH MESSAGES ──────────────────────────────────────────────────── --}}
+@if (flash()->has('error'))
+    <div class="alert alert-error">
+        <i class="bx bx-error"></i>
+        <span>{{ flash()->get('error') }}</span>
+    </div>
+@endif
+
+@if (flash()->has('success'))
+    <div class="alert alert-success">
+        <i class="bx bx-check-circle"></i>
+        <span>{{ flash()->get('success') }}</span>
+    </div>
+@endif
+
+{{-- ── LOGIN FORM ───────────────────────────────────────────────────────── --}}
+{{--
+    POST /login → AuthController@login
+    Validated by LoginRequest (email + password rules).
+--}}
+<form action="{{ route('login') }}" method="POST" autocomplete="off">
+
+    {{-- CSRF protection --}}
+    @csrf
+
+    {{-- Email ────────────────────────────────────────────────────────────
+        @old() repopulates the field after a failed validation attempt.
+    --}}
+    <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+            type="text"
+            id="email"
+            name="email"
+            value="@old('email')"
+            placeholder="name@example.com"
+            class="form-input @error_class('email', 'form-input--error')"
+        />
+        @error('email')
+            <span class="form-error">{{ $message }}</span>
+        @enderror
     </div>
 
-    {{-- ── Flash Error ──────────────────────────────────────────────────── --}}
-    @if (flash()->has('error'))
-        <div class="message-error">{{ flash()->get('error') }}</div>
-    @endif
-
-    {{-- ── Login Form ───────────────────────────────────────────────────── --}}
-    {{--
-        POST /sign-in/user → AuthController@login
-        The "remember" checkbox value ('on' when checked) is read by the
-        controller and passed to auth()->attempt() to issue a persistent cookie.
+    {{-- Password ─────────────────────────────────────────────────────────
+        The eye icon calls togglePasswordVisibility() (defined in guest.luna.php)
+        to swap the input between type="password" and type="text".
     --}}
-    <form action="{{ route('login') }}" autocomplete="off" method="POST">
-
-        @csrf
-
-        {{-- Email ──────────────────────────────────────────────────────── --}}
-        <div class="form-group">
-            <label for="email" class="form-label">Email</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-input"
-                value="@old('email')"
-                placeholder="name@example.com"
-                required
-                autocomplete="email"
-            />
-        </div>
-
-        {{-- Password (with show/hide toggle) ───────────────────────────── --}}
-        <div class="form-group">
-            <label for="password" class="form-label">Password</label>
+    <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-password-wrap">
             <input
                 type="password"
                 id="password"
                 name="password"
-                class="form-input"
                 placeholder="••••••••"
-                required
-                autocomplete="current-password"
+                class="form-input @error_class('password', 'form-input--error')"
             />
-            {{--
-                Eye icon — clicking calls togglePasswordVisibility() defined
-                in the inline script below.
-            --}}
-            <i
-                class="bx bx-show password-toggle"
-                id="password-toggle"
-                onclick="togglePasswordVisibility('password', 'password-toggle')"
-                title="Show / hide password"
-            ></i>
+            <i class="bx bx-show pwd-eye"
+               id="password-toggle"
+               onclick="togglePasswordVisibility('password', 'password-toggle')">
+            </i>
         </div>
+        @error('password')
+            <span class="form-error">{{ $message }}</span>
+        @enderror
+    </div>
 
-        {{--
-            Remember Me
-            ────────────
-            When checked the browser sends name="remember" with value "on".
-            AuthController@login reads this and passes the boolean to
-            auth()->attempt($credentials, $remember), which tells Slenix
-            to issue a long-lived remember cookie instead of a session-only one.
-        --}}
-        <div class="checkbox-group">
-            <input type="checkbox" id="remember" name="remember" class="checkbox-input">
-            <label for="remember" class="checkbox-label">Remember me for 30 days</label>
-        </div>
+    {{-- Remember Me ──────────────────────────────────────────────────────
+        When checked, the browser sends name="remember" with value "on".
+        AuthController@login passes this boolean to auth()->attempt(),
+        which issues a long-lived cookie instead of a session-only one.
+    --}}
+    <div class="checkbox-group">
+        <input type="checkbox" id="remember" name="remember" class="checkbox-input">
+        <label for="remember" class="checkbox-label">Remember me for 30 days</label>
+    </div>
 
-        {{-- Actions ─────────────────────────────────────────────────────── --}}
-        <div class="card-footer">
-            <a href="{{ route('show.register') }}" class="link-sub">Create an account</a>
-            <button type="submit" class="btn">Sign in &rarr;</button>
-        </div>
+    {{-- ACTIONS ──────────────────────────────────────────────────────────── --}}
+    <div class="card-footer">
+        <a href="{{ route('register') }}" class="link-sub">Create an account</a>
+        <button type="submit" class="btn">Sign in &rarr;</button>
+    </div>
 
-    </form>
+</form>
 
-    {{-- ── Inline Script ────────────────────────────────────────────────── --}}
-    <script>
-        /**
-         * Toggles the visibility of a password input field.
-         *
-         * Swaps the input type between "password" and "text", and updates
-         * the eye icon class to reflect the current state.
-         *
-         * @param {string} inputId  - The `id` attribute of the password <input>.
-         * @param {string} iconId   - The `id` attribute of the Boxicons <i> toggle.
-         * @returns {void}
-         */
-        function togglePasswordVisibility(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon  = document.getElementById(iconId);
-
-            if (!input || !icon) return;
-
-            const isHidden = input.type === 'password';
-
-            input.type    = isHidden ? 'text' : 'password';
-            icon.className = isHidden ? 'bx bx-hide password-toggle' : 'bx bx-show password-toggle';
-        }
-    </script>
 @endsection

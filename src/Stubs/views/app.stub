@@ -1,244 +1,161 @@
-{{--
-|--------------------------------------------------------------------------
-| layouts/app.blade.php — Veil Application Shell Layout
-|--------------------------------------------------------------------------
-|
-| Root layout for all authenticated pages. Renders the sidebar navigation,
-| mobile header, and main content area. Child views extend this layout via:
-|
-|   @extends('layouts.app')
-|
-| Available sections
-| ──────────────────
-|   @section('title')    — overrides the <title> tag (default: 'Slenix - Veil')
-|   @section('content')  — injected into <main class="main-content">
-|
-| Available stacks
-| ──────────────────
-|   @push('styles')      — appended inside <head> before </head>
-|   @push('scripts')     — appended before </body>
-|
---}}
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="{{ config('app.locale') }}" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    {{-- Page title — child views should override this section --}}
+    {{-- Page title — child views override this via @section('title') --}}
     <title>@yield('title', 'Slenix - Veil')</title>
 
-    {{-- Google Fonts: Geist (sans) + Geist Mono --}}
+    {{-- Fonts: Geist (UI) + Geist Mono (code/labels) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    {{-- Boxicons icon set (CDN) --}}
+    {{-- Icons --}}
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-    {{-- Core application stylesheet --}}
-    <link rel="stylesheet" href="/css/style.css">
+    {{-- Main stylesheet --}}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-    {{-- Per-page styles injected via @push('styles') in child views --}}
+    {{-- Favicon --}}
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}" type="image/x-icon">
+
+    {{-- Per-page styles injected by child views --}}
     @stack('styles')
 </head>
 
-<body>
-
-    {{-- ─────────────────────────────────────────────────────────────────
-        MOBILE OVERLAY
-        Semi-transparent backdrop shown behind the sidebar on small screens.
-        Clicking it calls toggleSidebar() to close the drawer.
-    ───────────────────────────────────────────────────────────────────── --}}
-    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
-
-    {{-- ─────────────────────────────────────────────────────────────────
-        ROOT LAYOUT WRAPPER
-        .app-layout uses a CSS grid: [sidebar | main-content].
-        On mobile the sidebar collapses into an off-canvas drawer.
-    ───────────────────────────────────────────────────────────────────── --}}
-    <div class="app-layout">
-
-        {{-- ── MOBILE HEADER ──────────────────────────────────────────── --}}
-        <header class="mobile-header">
-            <a href="{{ route('dashboard.show') }}"
-                style="display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text);">
-                <svg class="svg-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    style="width: 24px; height: 24px;">
-                    <rect class="bg-rect" width="32" height="32" rx="7" />
-                    <rect class="fg-rect" x="9" y="9" width="6" height="14" rx="1.5" />
-                    <rect class="fg-rect" x="9" y="9" width="14" height="5" rx="1.5" opacity=".45" />
-                    <rect class="fg-rect" x="9" y="18" width="14" height="5" rx="1.5" opacity=".45" />
-                    <rect class="fg-rect" x="17" y="9" width="6" height="14" rx="1.5" opacity=".7" />
-                </svg>
-                <span style="font-weight:600; font-size:16px; letter-spacing:-0.01em;">Slenix Veil</span>
-            </a>
-
-            {{-- Hamburger button — toggles sidebar drawer on mobile --}}
-            <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-                <i class='bx bx-menu'></i>
-            </button>
-        </header>
-        {{-- ── END MOBILE HEADER ── --}}
+<body class="fi-body">
+    <div class="fi-layout">
 
         {{-- ── SIDEBAR ──────────────────────────────────────────────────── --}}
-        <aside class="sidebar" id="sidebar">
+        <aside class="fi-sidebar" id="sidebar">
 
-            {{-- Brand logo link (desktop) --}}
-            <a href="{{ route('dashboard.show') }}" class="sidebar-header">
-                <svg class="svg-logo" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect class="bg-rect" width="32" height="32" rx="7" />
-                    <rect class="fg-rect" x="9" y="9" width="6" height="14" rx="1.5" />
-                    <rect class="fg-rect" x="9" y="9" width="14" height="5" rx="1.5" opacity=".45" />
-                    <rect class="fg-rect" x="9" y="18" width="14" height="5" rx="1.5" opacity=".45" />
-                    <rect class="fg-rect" x="17" y="9" width="6" height="14" rx="1.5" opacity=".7" />
-                </svg>
-                <span>Slenix Veil</span>
-            </a>
-
-            {{-- ── PRIMARY NAVIGATION ──────────────────────────────────── --}}
-            <div class="sidebar-middle">
-                <span class="nav-label">Platform</span>
-                <a href="{{ route('dashboard.show') }}" class="nav-item {{ request_is('/dashboard') ? 'active' : '' }}">
-                    <i class='bx bx-home'></i>
-                    Dashboard
+            {{-- Brand / Logo --}}
+            <header class="fi-sidebar-header">
+                <a href="{{ route('dashboard.show') ?? '#' }}" class="fi-logo">
+                    <img src="{{ asset('logo.png') }}" alt="Slenix Veil" width="35" height="35">
+                    <span class="fi-logo-text">Slenix Veil</span>
                 </a>
-            </div>
+            </header>
 
-            {{-- ── SECONDARY / BOTTOM NAVIGATION ──────────────────────── --}}
-            <div class="sidebar-bottom-links">
-                <a href="https://github.com/claudiovictors/Veil" target="_blank" rel="noopener noreferrer" class="nav-item">
-                    <i class='bx bx-git-branch'></i>
-                    Repository
-                </a>
-                <a href="http://slenix.vercel.app/docs/veil" target="_blank" rel="noopener noreferrer" class="nav-item">
-                    <i class='bx bx-file'></i>
-                    Documentation
-                </a>
-            </div>
+            {{-- Primary navigation links --}}
+            <nav class="fi-sidebar-nav">
+                <ul class="fi-nav-list">
+                    <li class="fi-nav-item">
+                        <a href="{{ route('dashboard.show') ?? '#' }}"
+                           class="fi-nav-link {{ is_active('/dashboard') }}">
+                            <i class='bx bx-home fi-nav-icon'></i>
+                            <span class="fi-nav-label">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
 
-            {{-- ── USER PILL & DROPDOWN ─────────────────────────────────────
-                Shows the authenticated user's avatar, display name, and email.
-                Clicking the pill opens a dropdown with profile links, a
-                light/dark theme switcher, and a log-out action.
-            ──────────────────────────────────────────────────────────────── --}}
-            <div class="user-pill-container" id="userPillContainer">
+        </aside>
+        {{-- ── END SIDEBAR ──────────────────────────────────────────────── --}}
 
-                {{-- Dropdown menu (hidden by default; .show toggles visibility) --}}
-                <div class="user-dropdown" id="userDropdown">
-                    <div class="dropdown-header">
-                        <span class="user-name">{{ auth()->user()->name }}</span>
-                        <span class="user-email">{{ auth()->user()->email }}</span>
-                    </div>
+        {{-- ── MAIN WRAPPER ───────────────────────────────────────────────── --}}
+        <div class="fi-main-wrapper">
 
-                    <div class="dropdown-divider"></div>
+            {{-- ── TOPBAR ──────────────────────────────────────────────────── --}}
+            <header class="fi-topbar">
 
-                    <a href="{{ route('settings.show') }}" class="dropdown-item">
-                        <i class='bx bx-user'></i>
-                        Profile
-                    </a>
-                    <a href="{{ route('settings.show') }}" class="dropdown-item">
-                        <i class='bx bx-cog'></i>
-                        Settings
-                    </a>
-
-                    <div class="dropdown-divider"></div>
-
-                    {{-- Light / Dark theme switcher --}}
-                    <div class="dropdown-appearance">
-                        <span class="dropdown-appearance-label">Appearance</span>
-                        <div class="theme-toggle-group">
-                            <button id="theme-light-btn" class="theme-btn" onclick="setTheme('light')" aria-label="Switch to light theme">
-                                <i class='bx bx-sun'></i> Light
-                            </button>
-                            <button id="theme-dark-btn" class="theme-btn" onclick="setTheme('dark')" aria-label="Switch to dark theme">
-                                <i class='bx bx-moon'></i> Dark
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="dropdown-divider"></div>
-
-                    {{-- Log-out link — navigates to the logout route which clears the session --}}
-                    <a href="{{ route('logout') }}" class="dropdown-item danger-item">
-                        <i class='bx bx-log-out'></i>
-                        Log out
-                    </a>
+                {{-- Mobile: hamburger menu trigger --}}
+                <div class="fi-topbar-left">
+                    <button class="fi-mobile-menu-btn" onclick="toggleSidebar()">
+                        <i class='bx bx-menu'></i>
+                    </button>
                 </div>
 
-                {{-- Pill button that opens/closes the dropdown --}}
-                <button class="user-pill" onclick="toggleDropdown(event)" aria-haspopup="true" aria-expanded="false">
-                    <div class="user-avatar">
-                        {!! avatar(auth()->user()->name . '' . auth()->user()->email, 90, '#0f0f0f') !!}
-                    </div>
-                    <div class="user-info">
-                        <span class="user-name">{{ auth()->user()->name }}</span>
-                        <span class="user-email">{{ auth()->user()->email }}</span>
-                    </div>
-                    <div class="user-chevrons">
-                        <i class='bx bx-chevron-up'></i>
-                        <i class='bx bx-chevron-down'></i>
-                    </div>
-                </button>
-            </div>
-        </aside>
-        {{-- ── END SIDEBAR ── --}}
+                {{-- User menu pill (avatar + name + dropdown) --}}
+                <div class="fi-topbar-right">
+                    <div class="fi-user-menu" id="userPillContainer">
 
-        {{-- ── MAIN CONTENT ─────────────────────────────────────────────────
-            Child views inject their markup here via @section('content').
-            Do not add extra wrappers inside child views unless strictly needed.
-        ──────────────────────────────────────────────────────────────────── --}}
-        <main class="main-content">
-            @yield('content')
-        </main>
+                        <button class="fi-user-button"
+                                onclick="toggleDropdown(event)"
+                                aria-expanded="false">
+                            <div class="fi-avatar">
+                                {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+                            </div>
+                            <span class="fi-user-name">
+                                {{ auth()->user()->name ?? 'admin' }}
+                            </span>
+                        </button>
 
-    </div>{{-- /.app-layout --}}
+                        {{-- Dropdown: theme switcher + sign out --}}
+                        <div class="fi-dropdown" id="userDropdown">
 
-    {{-- ─────────────────────────────────────────────────────────────────
-        CORE SCRIPTS
-        Handles: theme persistence, sidebar toggle, dropdown behaviour,
-        settings tab switching, and other shared UI interactions.
-    ───────────────────────────────────────────────────────────────────── --}}
+                            <div class="fi-dropdown-header">
+                                <span class="fi-dropdown-name">
+                                    {{ auth()->user()->name ?? 'admin' }}
+                                </span>
+                            </div>
+
+                            <div class="fi-dropdown-divider"></div>
+
+                            {{-- Light / Dark theme toggle --}}
+                            <div class="fi-dropdown-appearance">
+                                <span class="fi-dropdown-label">Toggle system theme</span>
+                                <div class="fi-theme-toggles">
+                                    <button class="fi-theme-btn" id="theme-light-btn" onclick="setTheme('light')">
+                                        <i class='bx bx-sun'></i>
+                                    </button>
+                                    <button class="fi-theme-btn" id="theme-dark-btn" onclick="setTheme('dark')">
+                                        <i class='bx bx-moon'></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="fi-dropdown-divider"></div>
+
+                            {{-- Logout --}}
+                            <form action="{{ route('logout') ?? '#' }}" method="GET" style="margin:0;">
+                                <button type="submit" class="fi-dropdown-item">
+                                    <i class='bx bx-log-out'></i> Sign out
+                                </button>
+                            </form>
+
+                        </div>
+                        {{-- END .fi-dropdown --}}
+
+                    </div>
+                </div>
+
+            </header>
+            {{-- ── END TOPBAR ───────────────────────────────────────────────── --}}
+
+            {{-- ── PAGE CONTENT ────────────────────────────────────────────── --}}
+            <main class="fi-main">
+                <div class="fi-main-content">
+                    @yield('content')
+                </div>
+            </main>
+            {{-- ── END PAGE CONTENT ─────────────────────────────────────────── --}}
+
+        </div>
+        {{-- ── END MAIN WRAPPER ────────────────────────────────────────────── --}}
+
+    </div>
+
+    {{-- Mobile overlay — closes sidebar when tapped outside --}}
+    <div class="fi-mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
     <script>
         /**
-         * @fileoverview Slenix Veil — Core Frontend Logic
-         *
-         * Covers:
-         *   - Theme initialisation and persistence via localStorage
-         *   - User dropdown open/close with outside-click dismissal
-         *   - Mobile sidebar drawer toggle with overlay
-         *   - Settings page tab switching
-         *
-         * This script is inlined in the shell layout so it executes before
-         * any deferred or async resources load, preventing a flash of the
-         * wrong theme on page load.
-         */
-
-        // ── Theme ──────────────────────────────────────────────────────────
-
-        /**
-         * Initialises the application theme from localStorage.
-         *
-         * Reads the persisted theme preference and applies it to the
-         * <html> element's data-theme attribute. Must run synchronously
-         * before the DOM is painted to prevent a flash of the wrong theme.
-         *
-         * @returns {void}
+         * Reads the saved theme from localStorage and applies it to <html>
+         * before the page renders to avoid a flash of unstyled content.
          */
         function initTheme() {
             const savedTheme = localStorage.getItem('slenix-theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
 
-        // Execute immediately — do not defer.
         initTheme();
 
         /**
-         * Synchronises theme-related UI controls (buttons, preview cards)
-         * once the DOM is fully loaded and all elements are available.
+         * Once the DOM is ready, sync the active state of the theme toggle buttons.
          */
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('slenix-theme') || 'light';
@@ -246,14 +163,9 @@
         });
 
         /**
-         * Switches the application theme and persists the selection.
+         * Apply a theme and persist the choice to localStorage.
          *
-         * Updates the <html> data-theme attribute, saves the preference to
-         * localStorage, and refreshes all toggle controls to reflect the
-         * new state.
-         *
-         * @param {string} theme - Theme identifier: 'light' or 'dark'.
-         * @returns {void}
+         * @param {'light'|'dark'} theme
          */
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
@@ -262,14 +174,9 @@
         }
 
         /**
-         * Updates the visual active state of theme toggle buttons and
-         * appearance preview cards to reflect the currently active theme.
+         * Mark the correct theme button as active based on the current theme.
          *
-         * Safe to call even when the controls do not exist on the page
-         * (e.g. outside the Settings view).
-         *
-         * @param {string} theme - The currently active theme: 'light' or 'dark'.
-         * @returns {void}
+         * @param {'light'|'dark'} theme
          */
         function updateThemeToggles(theme) {
             const lightBtn = document.getElementById('theme-light-btn');
@@ -280,29 +187,16 @@
             const isDark = theme === 'dark';
             darkBtn.classList.toggle('active', isDark);
             lightBtn.classList.toggle('active', !isDark);
-
-            // Appearance preview cards (present only on the Settings page).
-            const cardLight = document.getElementById('card-light');
-            const cardDark  = document.getElementById('card-dark');
-
-            if (cardLight && cardDark) {
-                cardDark.classList.toggle('active', isDark);
-                cardLight.classList.toggle('active', !isDark);
-            }
         }
 
-        // ── Dropdown ───────────────────────────────────────────────────────
-
         /**
-         * Toggles the user account dropdown menu open or closed.
+         * Toggle the user dropdown open/closed.
+         * Stops propagation so the document click handler doesn't close it immediately.
          *
-         * Stops the click event from propagating to the document-level
-         * listener that would immediately close the dropdown again.
-         *
-         * @param {MouseEvent} e - The click event from the pill button.
-         * @returns {void}
+         * @param {MouseEvent} e
          */
         function toggleDropdown(e) {
+            e.preventDefault();
             e.stopPropagation();
 
             const dropdown = document.getElementById('userDropdown');
@@ -311,85 +205,36 @@
             if (!dropdown) return;
 
             const isOpen = dropdown.classList.toggle('show');
-
-            // Sync aria-expanded on the trigger button for accessibility.
-            if (pill) {
-                pill.setAttribute('aria-expanded', String(isOpen));
-            }
+            if (pill) pill.setAttribute('aria-expanded', String(isOpen));
         }
 
         /**
-         * Closes the dropdown when the user clicks anywhere outside the
-         * user-pill container.
+         * Close the dropdown when the user clicks anywhere outside the user menu.
          */
         document.addEventListener('click', (e) => {
             const dropdown  = document.getElementById('userDropdown');
             const container = document.getElementById('userPillContainer');
 
-            if (dropdown && dropdown.classList.contains('show') && !container.contains(e.target)) {
+            if (dropdown?.classList.contains('show') && !container.contains(e.target)) {
                 dropdown.classList.remove('show');
-
-                // Reset aria-expanded on the pill button.
-                const pill = container.querySelector('.user-pill');
+                const pill = container.querySelector('.fi-user-button');
                 if (pill) pill.setAttribute('aria-expanded', 'false');
             }
         });
 
-        // ── Sidebar ────────────────────────────────────────────────────────
-
         /**
-         * Toggles the off-canvas sidebar drawer on mobile viewports.
-         *
-         * Adds/removes the .show class from both the sidebar and the
-         * semi-transparent overlay behind it. The overlay's onclick also
-         * calls this function, enabling tap-to-close behaviour.
-         *
-         * @returns {void}
+         * Toggle the sidebar and its backdrop overlay on mobile.
          */
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('mobile-overlay');
 
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
-            }
-        }
-
-        // ── Settings Tabs ──────────────────────────────────────────────────
-
-        /**
-         * Switches the visible tab in the Settings interface.
-         *
-         * Deactivates all .settings-nav-item elements and .settings-tab
-         * content panels, then activates the one matching tabId.
-         *
-         * @param {string}      tabId - ID suffix of the target tab panel
-         *                             (rendered as `tab-${tabId}` in the DOM).
-         * @param {Event|null}  event - The originating click event; used to
-         *                             mark the clicked nav item as active.
-         *                             Pass null if calling programmatically.
-         * @returns {void}
-         */
-        function switchTab(tabId, event) {
-            if (event) event.preventDefault();
-
-            // Deactivate all nav items, then activate the clicked one.
-            document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
-
-            // Hide all tab panels, then reveal the target.
-            document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active-tab'));
-            const targetTab = document.getElementById('tab-' + tabId);
-            if (targetTab) {
-                targetTab.classList.add('active-tab');
-            }
+            sidebar?.classList.toggle('show');
+            overlay?.classList.toggle('show');
         }
     </script>
 
-    {{-- Per-page scripts injected via @push('scripts') in child views --}}
+    {{-- Per-page scripts injected by child views --}}
     @stack('scripts')
 
 </body>

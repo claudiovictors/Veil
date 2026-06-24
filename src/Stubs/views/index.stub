@@ -1,0 +1,79 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard — Veil Slenix')
+
+@section('content')
+
+{{-- ── PAGE HEADER ──────────────────────────────────────────────────────── --}}
+<header class="fi-page-header">
+    <h1 class="fi-page-title">Dashboard</h1>
+</header>
+
+{{-- ── WIDGETS GRID ─────────────────────────────────────────────────────── --}}
+<div class="fi-widgets-grid">
+
+    {{-- ── WELCOME CARD ─────────────────────────────────────────────────── --}}
+    {{-- Displays the authenticated user's avatar initial, name, role,
+         and a quick sign-out action. --}}
+    <div class="fi-card fi-card-welcome">
+        <div class="fi-card-content">
+
+            {{-- Avatar: first letter of the user's name --}}
+            <div class="fi-card-avatar">
+                {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+            </div>
+
+            {{-- Name and role --}}
+            <div class="fi-card-user-info">
+                <h2 class="fi-welcome-title">
+                    Welcome{{ auth()->check() ? ', ' . auth()->user()->name : '' }}
+                </h2>
+                <p class="fi-welcome-role">{{ auth()->user()->role ?? 'admin' }}</p>
+            </div>
+
+            {{-- Sign-out button --}}
+            <div class="fi-card-actions">
+                <a href="{{ route('logout') }}" class="fi-btn fi-btn-outline">
+                    <i class='bx bx-log-out'></i> Sign out
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {{-- ── END WELCOME CARD ─────────────────────────────────────────────── --}}
+
+    {{-- ── INFO CARD ────────────────────────────────────────────────────── --}}
+    {{-- Displays the Veil version and quick links to docs and GitHub. --}}
+    <div class="fi-card fi-card-info">
+        <div class="fi-card-content">
+
+            {{-- Brand + version --}}
+            <div class="fi-info-left">
+                <h2 class="fi-info-logo"><i>slenix</i></h2>
+                <p class="fi-info-version">v1.0.0</p>
+            </div>
+
+            {{-- External links --}}
+            <div class="fi-info-links">
+                <a href="https://slenix.vercel.app/docs/veil"
+                   class="fi-link-item"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <i class='bx bx-book'></i> Documentation
+                </a>
+                <a href="https://github.com/claudiovictors/Veil"
+                   class="fi-link-item"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <i class='bx bxl-github'></i> GitHub
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {{-- ── END INFO CARD ────────────────────────────────────────────────── --}}
+
+</div>
+{{-- ── END WIDGETS GRID ─────────────────────────────────────────────────── --}}
+
+@endsection

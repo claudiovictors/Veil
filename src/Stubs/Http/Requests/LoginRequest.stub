@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests;
+
+use Slenix\Http\FormRequest;
+
+/**
+ * LoginRequest
+ *
+ * Validates incoming login form submissions.
+ * Used by AuthController::login() before credentials are checked.
+ */
+class LoginRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Validation rules for this request.
+     *
+     * @return array<string, string|string[]>
+     */
+    public function rules(): array
+    {
+        return [
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string', 'min:6'],
+        ];
+    }
+
+    /**
+     * Custom error messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required'    => 'Email is required.',
+            'email.email'       => 'The provided email is invalid.',
+            'password.required' => 'Password is required.',
+            'password.min'      => 'The password must be at least 6 characters long.',
+        ];
+    }
+}

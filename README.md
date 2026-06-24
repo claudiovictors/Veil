@@ -1,7 +1,7 @@
 # <p align="center">Slenix Veil</p>
 
 <p align="center">
-<img src="https://slenix.vercel.app/assets/logo.svg" width="120" alt="Veil Logo">
+<img src="src/Stubs/public/logo.png" width="120" alt="Veil Logo">
 </p>
 
 <p align="center">
