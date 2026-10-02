@@ -1,0 +1,70 @@
+@extends('layouts.guest')
+
+@section('title', 'Login - Slenix Veil')
+
+@section('content')
+<div class="card-header">
+    <h1 class="card-title">Sign in</h1>
+    <p class="card-subtitle">Enter your credentials to continue</p>
+</div>
+
+@if(flash()->has('error'))
+    <div class="alert alert-error" style="margin-bottom:16px;">
+        <i class='bx bx-error-circle'></i>
+        <span>{{ flash()->get('error') }}</span>
+    </div>
+@endif
+
+@if(flash()->has('success'))
+    <div class="alert alert-success" style="margin-bottom:16px;">
+        <i class='bx bx-check-circle'></i>
+        <span>{{ flash()->get('success') }}</span>
+    </div>
+@endif
+
+<form method="POST" action="{{ route('login.post') }}" novalidate>
+    @csrf
+
+    <div class="form-group">
+        <label class="form-label" for="email">Email <sup>*</sup></label>
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input @error('email') form-input--error @enderror"
+            value="{{ old('email') }}"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+        >
+        @error('email')
+            <span class="form-error">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="password">Password <sup>*</sup></label>
+        <div class="input-password-wrap">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input @error('password') form-input--error @enderror"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+            >
+            <i class='bx bx-show pwd-eye' id="pwd-eye" onclick="togglePasswordVisibility('password', 'pwd-eye')"></i>
+        </div>
+        @error('password')
+            <span class="form-error">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <button type="submit" class="btn btn-full">Sign in</button>
+</form>
+
+<div class="card-footer-center">
+    <a href="{{ route('register') }}" class="link-sub">Don't have an account? Register</a>
+</div>
+@endsection

@@ -22,6 +22,17 @@ class DashboardController
      */
     public function index(Request $req, Response $res)
     {
-        return view('dashboard.index');
+        $user = auth()->user();
+
+        return view('dashboard.index', [
+            'page'  => 'dashboard',
+            'props' => [
+                'user' => [
+                    'name'  => $user->name ?? 'User',
+                    'email' => $user->email ?? '',
+                ],
+                'logoutUrl' => route('logout'),
+            ],
+        ]);
     }
 }

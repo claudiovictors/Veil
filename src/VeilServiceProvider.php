@@ -27,6 +27,6 @@ class VeilServiceProvider
      */
     public static function stubsPath(): string
     {
-        return dirname(__DIR__) . '/src/Stubs';
+        return __DIR__ . '/Stubs';
     }
 }

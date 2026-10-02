@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="{{ config('app.locale') }}" data-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {!! csrf_meta() !!}
 
     {{-- Page title — child views override this via @section('title') --}}
     <title>@yield('title', 'Slenix - Veil')</title>
@@ -12,10 +12,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+    
     {{-- Icons --}}
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-
+    
     {{-- Main stylesheet --}}
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
@@ -25,26 +25,21 @@
     {{-- Per-page styles injected by child views --}}
     @stack('styles')
 </head>
-
 <body class="fi-body">
     <div class="fi-layout">
 
         {{-- ── SIDEBAR ──────────────────────────────────────────────────── --}}
         <aside class="fi-sidebar" id="sidebar">
-
-            {{-- Brand / Logo --}}
             <header class="fi-sidebar-header">
-                <a href="{{ route('dashboard.show') ?? '#' }}" class="fi-logo">
+                <a href="{{ route('dashboard') }}" class="fi-logo">
                     <img src="{{ asset('logo.png') }}" alt="Slenix Veil" width="35" height="35">
                     <span class="fi-logo-text">Slenix Veil</span>
                 </a>
             </header>
-
-            {{-- Primary navigation links --}}
             <nav class="fi-sidebar-nav">
                 <ul class="fi-nav-list">
                     <li class="fi-nav-item">
-                        <a href="{{ route('dashboard.show') ?? '#' }}"
+                        <a href="{{ route('dashboard') }}"
                            class="fi-nav-link {{ is_active('/dashboard') }}">
                             <i class='bx bx-home fi-nav-icon'></i>
                             <span class="fi-nav-label">Dashboard</span>
@@ -52,27 +47,20 @@
                     </li>
                 </ul>
             </nav>
-
         </aside>
-        {{-- ── END SIDEBAR ──────────────────────────────────────────────── --}}
 
         {{-- ── MAIN WRAPPER ───────────────────────────────────────────────── --}}
         <div class="fi-main-wrapper">
 
             {{-- ── TOPBAR ──────────────────────────────────────────────────── --}}
             <header class="fi-topbar">
-
-                {{-- Mobile: hamburger menu trigger --}}
                 <div class="fi-topbar-left">
                     <button class="fi-mobile-menu-btn" onclick="toggleSidebar()">
                         <i class='bx bx-menu'></i>
                     </button>
                 </div>
-
-                {{-- User menu pill (avatar + name + dropdown) --}}
                 <div class="fi-topbar-right">
                     <div class="fi-user-menu" id="userPillContainer">
-
                         <button class="fi-user-button"
                                 onclick="toggleDropdown(event)"
                                 aria-expanded="false">
@@ -83,19 +71,13 @@
                                 {{ auth()->user()->name ?? 'admin' }}
                             </span>
                         </button>
-
-                        {{-- Dropdown: theme switcher + sign out --}}
                         <div class="fi-dropdown" id="userDropdown">
-
                             <div class="fi-dropdown-header">
                                 <span class="fi-dropdown-name">
                                     {{ auth()->user()->name ?? 'admin' }}
                                 </span>
                             </div>
-
                             <div class="fi-dropdown-divider"></div>
-
-                            {{-- Light / Dark theme toggle --}}
                             <div class="fi-dropdown-appearance">
                                 <span class="fi-dropdown-label">Toggle system theme</span>
                                 <div class="fi-theme-toggles">
@@ -107,24 +89,17 @@
                                     </button>
                                 </div>
                             </div>
-
                             <div class="fi-dropdown-divider"></div>
-
-                            {{-- Logout --}}
-                            <form action="{{ route('logout') ?? '#' }}" method="GET" style="margin:0;">
+                            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
+                                @csrf
                                 <button type="submit" class="fi-dropdown-item">
                                     <i class='bx bx-log-out'></i> Sign out
                                 </button>
                             </form>
-
                         </div>
-                        {{-- END .fi-dropdown --}}
-
                     </div>
                 </div>
-
             </header>
-            {{-- ── END TOPBAR ───────────────────────────────────────────────── --}}
 
             {{-- ── PAGE CONTENT ────────────────────────────────────────────── --}}
             <main class="fi-main">
@@ -132,89 +107,52 @@
                     @yield('content')
                 </div>
             </main>
-            {{-- ── END PAGE CONTENT ─────────────────────────────────────────── --}}
-
         </div>
-        {{-- ── END MAIN WRAPPER ────────────────────────────────────────────── --}}
-
     </div>
 
     {{-- Mobile overlay — closes sidebar when tapped outside --}}
     <div class="fi-mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
 
     <script>
-        /**
-         * Reads the saved theme from localStorage and applies it to <html>
-         * before the page renders to avoid a flash of unstyled content.
-         */
         function initTheme() {
-            const savedTheme = localStorage.getItem('slenix-theme') || 'light';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
-
         initTheme();
 
-        /**
-         * Once the DOM is ready, sync the active state of the theme toggle buttons.
-         */
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('slenix-theme') || 'light';
+            const savedTheme = localStorage.getItem('theme') || 'light';
             updateThemeToggles(savedTheme);
         });
 
-        /**
-         * Apply a theme and persist the choice to localStorage.
-         *
-         * @param {'light'|'dark'} theme
-         */
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('slenix-theme', theme);
+            localStorage.setItem('theme', theme);
             updateThemeToggles(theme);
         }
 
-        /**
-         * Mark the correct theme button as active based on the current theme.
-         *
-         * @param {'light'|'dark'} theme
-         */
         function updateThemeToggles(theme) {
             const lightBtn = document.getElementById('theme-light-btn');
             const darkBtn  = document.getElementById('theme-dark-btn');
-
             if (!lightBtn || !darkBtn) return;
-
             const isDark = theme === 'dark';
             darkBtn.classList.toggle('active', isDark);
             lightBtn.classList.toggle('active', !isDark);
         }
 
-        /**
-         * Toggle the user dropdown open/closed.
-         * Stops propagation so the document click handler doesn't close it immediately.
-         *
-         * @param {MouseEvent} e
-         */
         function toggleDropdown(e) {
             e.preventDefault();
             e.stopPropagation();
-
             const dropdown = document.getElementById('userDropdown');
             const pill     = e.currentTarget;
-
             if (!dropdown) return;
-
             const isOpen = dropdown.classList.toggle('show');
             if (pill) pill.setAttribute('aria-expanded', String(isOpen));
         }
 
-        /**
-         * Close the dropdown when the user clicks anywhere outside the user menu.
-         */
         document.addEventListener('click', (e) => {
             const dropdown  = document.getElementById('userDropdown');
             const container = document.getElementById('userPillContainer');
-
             if (dropdown?.classList.contains('show') && !container.contains(e.target)) {
                 dropdown.classList.remove('show');
                 const pill = container.querySelector('.fi-user-button');
@@ -222,20 +160,13 @@
             }
         });
 
-        /**
-         * Toggle the sidebar and its backdrop overlay on mobile.
-         */
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('mobile-overlay');
-
             sidebar?.classList.toggle('show');
             overlay?.classList.toggle('show');
         }
     </script>
-
-    {{-- Per-page scripts injected by child views --}}
     @stack('scripts')
-
 </body>
 </html>

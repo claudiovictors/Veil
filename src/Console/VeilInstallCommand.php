@@ -21,17 +21,21 @@ declare(strict_types=1);
 namespace Slenix\Veil\Console;
 
 use Slenix\Core\Console\Command;
+use Slenix\Core\Console\Prompt;
 use Slenix\Veil\VeilServiceProvider;
 
 /**
  * VeilInstallCommand
  *
- * Orchestrates the full Veil authentication scaffolding installation.
- * Publishes stubs for models, controllers, form requests, middlewares,
- * views, CSS assets, the Veil logo, and injects authentication routes
- * into the project's web.php file.
+ * Installs Luna or React authentication scaffolding.
  *
- * @version 1.4.0
+ * Usage:
+ *   php celestial veil:install
+ *   php celestial veil:install --stack=luna
+ *   php celestial veil:install --stack=react --force
+ *   php celestial veil:install --no-interaction
+ *
+ * @version 2.0.0
  */
 class VeilInstallCommand extends Command
 {
@@ -49,6 +53,7 @@ class VeilInstallCommand extends Command
      * @var bool
      */
     private bool $force;
+    private bool $noInteraction;
 
     /**
      * The absolute path to the root of the host project.
@@ -63,6 +68,7 @@ class VeilInstallCommand extends Command
      * @var string
      */
     private string $stubsPath;
+    private string $stack;
 
     /**
      * VeilInstallCommand constructor.
@@ -76,8 +82,22 @@ class VeilInstallCommand extends Command
     {
         $this->args = $args;
         $this->force = in_array('--force', $args, true);
+        $this->noInteraction = in_array('--no-interaction', $args, true);
         $this->projectRoot = dirname(__DIR__, 5);
         $this->stubsPath = VeilServiceProvider::stubsPath();
+        $this->stack = $this->resolveStack();
+    }
+
+    private static function findRoot(string $from): string
+    {
+        $dir = $from;
+        while ($dir !== dirname($dir)) {
+            if (is_file($dir . '/celestial')) {
+                return $dir;
+            }
+            $dir = dirname($dir);
+        }
+        return getcwd() ?: $from;
     }
 
     /**
@@ -92,256 +112,274 @@ class VeilInstallCommand extends Command
     {
         self::newLine();
         self::info('Installing Slenix Veil authentication scaffolding...');
+        self::info('Stack: ' . strtoupper($this->stack));
         self::newLine();
 
-        $this->publishControllers();
-        $this->publishFormRequests();
-        $this->publishMiddlewares();
-        $this->publishViews();
-        $this->publishAssets();
+        if ($this->stack === 'react' && !$this->ensureReactFrontend()) {
+            self::warning('Falling back to Luna stack.');
+            $this->stack = 'luna';
+        }
+
+        $this->detectExistingVariant();
+
+        $this->publishModelIfMissing();
+        $this->publishShared();
+        $this->publishStack();
         $this->appendRoutes();
 
         self::newLine();
-        self::success('Veil installed successfully!');
+        self::success('Veil (' . $this->stack . ') installed successfully!');
         self::newLine();
-        self::info('Next steps:');
-        echo '  1. Run: php celestial migrate' . PHP_EOL;
-        echo '  2. Visit /login or /register in your browser.' . PHP_EOL;
-        self::newLine();
+        $this->printNextSteps();
     }
 
-    /**
-     * Publish the User model stub.
-     *
-     * src/Stubs/model/User.stub → app/Models/User.php
-     *
-     * @return void
-     */
-    private function publishModel(): void
+    private function resolveStack(): string
     {
+        foreach ($this->args as $arg) {
+            if (str_starts_with($arg, '--stack=')) {
+                $value = strtolower(substr($arg, 8));
+                if (in_array($value, ['luna', 'react'], true)) {
+                    return $value;
+                }
+                self::error("Invalid --stack value: {$value}. Use luna or react.");
+                exit(1);
+            }
+        }
+
+        if ($this->noInteraction || !stream_isatty(STDIN)) {
+            return 'luna';
+        }
+
+        $options = [
+            'Luna (server-rendered HTML/CSS)',
+            'React (multi-page, session auth)',
+        ];
+        $prompt = new Prompt();
+        $label  = $prompt->select('Which authentication stack do you want to install?', $options);
+        unset($prompt);
+
+        return str_starts_with((string) $label, 'React') ? 'react' : 'luna';
+    }
+
+    private function ensureReactFrontend(): bool
+    {
+        $appJsx = $this->projectRoot . '/resources/js/app.jsx';
+        $vite   = $this->projectRoot . '/vite.config.js';
+
+        if (file_exists($appJsx) && file_exists($vite)) {
+            return true;
+        }
+
+        self::warning('React frontend not detected (resources/js/app.jsx or vite.config.js missing).');
+
+        if ($this->noInteraction || !stream_isatty(STDIN)) {
+            return false;
+        }
+
+        $prompt = new Prompt();
+        $run = $prompt->confirm('Run `php celestial frontend:install react` now?', false);
+        unset($prompt);
+
+        if (!$run) {
+            return false;
+        }
+
+        passthru('php celestial frontend:install react', $code);
+
+        return $code === 0 && file_exists($appJsx) && file_exists($vite);
+    }
+
+    private function detectExistingVariant(): void
+    {
+        $markerFile = $this->projectRoot . '/.veil-stack';
+        if (!file_exists($markerFile)) {
+            return;
+        }
+
+        $existing = trim((string) file_get_contents($markerFile));
+        if ($existing !== '' && $existing !== $this->stack) {
+            self::warning("A different Veil stack is already installed ({$existing}). Installing {$this->stack} may mix files.");
+            if (!$this->force && !$this->noInteraction && stream_isatty(STDIN)) {
+                $prompt = new Prompt();
+                $ok = $prompt->confirm('Continue anyway?', false);
+                unset($prompt);
+                if (!$ok) {
+                    self::info('Aborted.');
+                    exit(0);
+                }
+            }
+        }
+    }
+
+    private function publishModelIfMissing(): void
+    {
+        $dest = $this->projectRoot . '/app/Models/User.php';
+        if (file_exists($dest)) {
+            self::info('User model already exists — skipping.');
+            return;
+        }
+
         $this->publish(
-            $this->stubsPath . '/model/User.stub',
-            $this->projectRoot . '/app/Models/User.php',
+            $this->stubsPath . '/shared/model/User.stub',
+            $dest,
             'User model'
         );
     }
 
-    /**
-     * Publish all controller stubs.
-     *
-     * src/Stubs/controllers/AuthController.stub      → app/Controllers/AuthController.php
-     * src/Stubs/controllers/DashboardController.stub → app/Controllers/DashboardController.php
-     *
-     * @return void
-     */
-    private function publishControllers(): void
+    private function publishShared(): void
+    {
+        $map = [
+            'shared/middlewares/AuthMiddleware.stub'   => 'app/Middlewares/AuthMiddleware.php',
+            'shared/middlewares/GuestMiddleware.stub'  => 'app/Middlewares/GuestMiddleware.php',
+            'shared/Http/Requests/LoginRequest.stub'   => 'app/Http/Requests/LoginRequest.php',
+            'shared/Http/Requests/RegisterRequest.stub'=> 'app/Http/Requests/RegisterRequest.php',
+        ];
+
+        foreach ($map as $stub => $dest) {
+            $this->publish(
+                $this->stubsPath . '/' . $stub,
+                $this->projectRoot . '/' . $dest,
+                $dest
+            );
+        }
+
+        $logoStub = $this->stubsPath . '/shared/public/logo.png';
+        if (file_exists($logoStub)) {
+            $this->publish($logoStub, $this->projectRoot . '/public/logo.png', 'public/logo.png');
+        }
+    }
+
+    private function publishStack(): void
+    {
+        if ($this->stack === 'luna') {
+            $this->publishLuna();
+        } else {
+            $this->publishReact();
+        }
+
+        file_put_contents($this->projectRoot . '/.veil-stack', $this->stack);
+    }
+
+    private function publishLuna(): void
     {
         $controllers = [
-            'AuthController' => 'controllers/AuthController.stub',
-            'DashboardController' => 'controllers/DashboardController.stub',
+            'luna/controllers/AuthController.stub'      => 'app/Controllers/AuthController.php',
+            'luna/controllers/DashboardController.stub' => 'app/Controllers/DashboardController.php',
         ];
 
-        foreach ($controllers as $name => $stubFile) {
-            $this->publish(
-                $this->stubsPath . '/' . $stubFile,
-                $this->projectRoot . '/app/Controllers/' . $name . '.php',
-                $name
-            );
+        foreach ($controllers as $stub => $dest) {
+            $this->publish($this->stubsPath . '/' . $stub, $this->projectRoot . '/' . $dest, $dest);
         }
-    }
 
-    /**
-     * Publish all Form Request stubs.
-     *
-     * src/Stubs/Http/Requests/LoginRequest.stub    → app/Http/Requests/LoginRequest.php
-     * src/Stubs/Http/Requests/RegisterRequest.stub → app/Http/Requests/RegisterRequest.php
-     *
-     * @return void
-     */
-    private function publishFormRequests(): void
-    {
-        $requests = [
-            'LoginRequest' => 'Http/Requests/LoginRequest.stub',
-            'RegisterRequest' => 'Http/Requests/RegisterRequest.stub',
-        ];
-
-        foreach ($requests as $name => $stubFile) {
-            $this->publish(
-                $this->stubsPath . '/' . $stubFile,
-                $this->projectRoot . '/app/Http/Requests/' . $name . '.php',
-                $name
-            );
-        }
-    }
-
-    /**
-     * Publish the Auth and Guest middleware stubs.
-     *
-     * src/Stubs/middlewares/AuthMiddleware.stub  → app/Middlewares/AuthMiddleware.php
-     * src/Stubs/middlewares/GuestMiddleware.stub → app/Middlewares/GuestMiddleware.php
-     *
-     * @return void
-     */
-    private function publishMiddlewares(): void
-    {
-        $middlewares = [
-            'AuthMiddleware' => 'middlewares/AuthMiddleware.stub',
-            'GuestMiddleware' => 'middlewares/GuestMiddleware.stub',
-        ];
-
-        foreach ($middlewares as $name => $stubFile) {
-            $this->publish(
-                $this->stubsPath . '/' . $stubFile,
-                $this->projectRoot . '/app/Middlewares/' . $name . '.php',
-                $name
-            );
-        }
-    }
-
-    /**
-     * Publish all Luna view stubs for authentication scaffolding.
-     *
-     * src/Stubs/views/app.stub       → views/layouts/app.luna.php
-     * src/Stubs/views/guest.stub     → views/layouts/guest.luna.php
-     * src/Stubs/views/login.stub     → views/auth/login.luna.php
-     * src/Stubs/views/register.stub  → views/auth/register.luna.php
-     * src/Stubs/views/index.stub     → views/dashboard/index.luna.php
-     *
-     * @return void
-     */
-    private function publishViews(): void
-    {
         $views = [
-            'layouts/app.luna.php' => 'views/app.stub',
-            'layouts/guest.luna.php' => 'views/guest.stub',
-            'auth/login.luna.php' => 'views/login.stub',
-            'auth/register.luna.php' => 'views/register.stub',
-            'dashboard/index.luna.php' => 'views/index.stub',
+            'luna/views/app.stub'      => 'views/layouts/app.luna.php',
+            'luna/views/guest.stub'    => 'views/layouts/guest.luna.php',
+            'luna/views/login.stub'    => 'views/auth/login.luna.php',
+            'luna/views/register.stub' => 'views/auth/register.luna.php',
+            'luna/views/index.stub'    => 'views/dashboard/index.luna.php',
         ];
 
-        foreach ($views as $relative => $stubFile) {
-            $this->publish(
-                $this->stubsPath . '/' . $stubFile,
-                $this->projectRoot . '/views/' . $relative,
-                $relative
-            );
+        foreach ($views as $stub => $dest) {
+            $this->publish($this->stubsPath . '/' . $stub, $this->projectRoot . '/' . $dest, $dest);
+        }
+
+        $css = [
+            'luna/css/style.css' => 'public/css/style.css',
+            'luna/css/auth.css'  => 'public/css/auth.css',
+        ];
+
+        foreach ($css as $stub => $dest) {
+            $this->publish($this->stubsPath . '/' . $stub, $this->projectRoot . '/' . $dest, $dest);
         }
     }
 
-    /**
-     * Publish Veil's CSS stylesheets and logo to the project's public directory.
-     *
-     * Stylesheets:
-     *   src/Stubs/css/style.css → public/css/style.css
-     *   src/Stubs/css/auth.css  → public/css/auth.css
-     *
-     * Logo (replaces the default Slenix logo):
-     *   src/Stubs/public/logo.png → public/logo.png
-     *
-     * @return void
-     */
-    private function publishAssets(): void
+    private function publishReact(): void
     {
-        // CSS files
-        $stylesheets = [
-            'style.css' => 'css/style.css',
-            'auth.css' => 'css/auth.css',
+        $controllers = [
+            'react/controllers/AuthController.stub'      => 'app/Controllers/AuthController.php',
+            'react/controllers/DashboardController.stub' => 'app/Controllers/DashboardController.php',
         ];
 
-        foreach ($stylesheets as $filename => $stubFile) {
-            $this->publish(
-                $this->stubsPath . '/' . $stubFile,
-                $this->projectRoot . '/public/css/' . $filename,
-                'public/css/' . $filename
-            );
+        foreach ($controllers as $stub => $dest) {
+            $this->publish($this->stubsPath . '/' . $stub, $this->projectRoot . '/' . $dest, $dest);
         }
 
-        // Veil logo — replaces the default Slenix logo
+        $pageStub = $this->stubsPath . '/react/views/page.stub';
+        foreach ([
+            'views/auth/login.luna.php',
+            'views/auth/register.luna.php',
+            'views/dashboard/index.luna.php',
+        ] as $dest) {
+            $this->publish($pageStub, $this->projectRoot . '/' . $dest, $dest);
+        }
+
         $this->publish(
-            $this->stubsPath . '/public/logo.png',
-            $this->projectRoot . '/public/logo.png',
-            'public/logo.png'
+            $this->stubsPath . '/react/views/app.stub',
+            $this->projectRoot . '/views/layouts/app.luna.php',
+            'views/layouts/app.luna.php'
+        );
+
+        // Always backup existing app.jsx (including --force)
+        $appJsx = $this->projectRoot . '/resources/js/app.jsx';
+        if (file_exists($appJsx)) {
+            $backup = $this->projectRoot . '/resources/js/app.veil-backup.jsx';
+            copy($appJsx, $backup);
+            self::info('Backed up existing app.jsx → resources/js/app.veil-backup.jsx');
+        }
+
+        foreach ([
+            'react/resources/js/app.jsx' => 'resources/js/app.jsx',
+            'react/resources/js/http.js' => 'resources/js/http.js',
+        ] as $stub => $dest) {
+            $this->publish($this->stubsPath . '/' . $stub, $this->projectRoot . '/' . $dest, $dest);
+        }
+
+        $componentsDir = $this->stubsPath . '/react/resources/js/components';
+        if (is_dir($componentsDir)) {
+            $targetDir = $this->projectRoot . '/resources/js/components';
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            foreach (glob($componentsDir . '/*.jsx') ?: [] as $file) {
+                $name = basename($file);
+                $this->publish($file, $targetDir . '/' . $name, 'resources/js/components/' . $name);
+            }
+        }
+
+        $this->publish(
+            $this->stubsPath . '/react/resources/css/veil.css',
+            $this->projectRoot . '/resources/css/veil.css',
+            'resources/css/veil.css'
         );
     }
 
-    /**
-     * Publish database migration stubs in sequential order.
-     *
-     * Each filename is prefixed with a timestamp to guarantee correct
-     * execution order when running `php celestial migrate`.
-     *
-     * create_users_table → database/migrations/{timestamp}01_create_users_table.php
-     *
-     * @return void
-     */
-    private function publishMigrations(): void
-    {
-        $migrations = [
-            'create_users_table' => '01',
-        ];
-
-        $base = date('Y_m_d_His');
-
-        foreach ($migrations as $name => $suffix) {
-            $timestamp = $base . $suffix;
-            $destination = $this->projectRoot . '/database/migrations/' . $timestamp . '_' . $name . '.php';
-
-            $this->publish(
-                $this->stubsPath . '/migrations/' . $name . '.stub',
-                $destination,
-                $name . ' migration'
-            );
-        }
-    }
-
-    /**
-     * Append Veil's authentication routes to the project's web.php file.
-     *
-     * Uses the `// @veil-routes` marker to detect whether routes have
-     * already been injected, preventing duplicate entries on repeated runs.
-     *
-     * @return void
-     */
     private function appendRoutes(): void
     {
         $routesFile = $this->projectRoot . '/routes/web.php';
-        $stub = $this->stubsPath . '/routes.stub';
-        $marker = '// @veil-routes';
+        $stub = $this->stubsPath . '/shared/routes.stub';
+        $start = '// @veil-routes';
+        $end   = '// @end-veil-routes';
 
-        if (!file_exists($routesFile)) {
-            self::warning('routes/web.php not found. Skipping route injection.');
+        if (!file_exists($routesFile) || !file_exists($stub)) {
+            self::warning('routes/web.php or routes stub missing. Skipping route injection.');
             return;
         }
 
-        if (!file_exists($stub)) {
-            self::warning('Routes stub not found. Skipping route injection.');
+        $content = file_get_contents($routesFile);
+        $block   = trim(file_get_contents($stub));
+
+        if (str_contains($content, $start) && str_contains($content, $end)) {
+            $pattern = '/' . preg_quote($start, '/') . '.*?' . preg_quote($end, '/') . '/s';
+            $content = preg_replace_callback($pattern, static fn () => $block, $content);
+            file_put_contents($routesFile, $content);
+            self::success('Routes block replaced → routes/web.php');
             return;
         }
 
-        $routesContent = file_get_contents($routesFile);
-
-        if (str_contains($routesContent, $marker)) {
-            self::warning('Veil routes already present in web.php. Skipping.');
-            return;
-        }
-
-        file_put_contents($routesFile, $routesContent . PHP_EOL . file_get_contents($stub));
+        file_put_contents($routesFile, rtrim($content) . PHP_EOL . PHP_EOL . $block . PHP_EOL);
         self::success('Routes appended → routes/web.php');
     }
 
-    /**
-     * Copy a stub file to its destination in the host project.
-     *
-     * Creates any missing intermediate directories automatically.
-     * Skips the copy if the destination already exists and --force
-     * was not passed, preserving any user modifications.
-     *
-     * @param string $stub        Absolute path to the source stub file.
-     * @param string $destination Absolute path to the target file.
-     * @param string $label       Human-readable label used in console output.
-     *
-     * @return void
-     */
     private function publish(string $stub, string $destination, string $label): void
     {
         if (!file_exists($stub)) {
@@ -355,7 +393,6 @@ class VeilInstallCommand extends Command
         }
 
         $dir = dirname($destination);
-
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
             self::error("Failed to create directory: {$dir}");
             return;
@@ -366,5 +403,21 @@ class VeilInstallCommand extends Command
         } else {
             self::error("Failed to publish: {$label}");
         }
+    }
+
+    private function printNextSteps(): void
+    {
+        self::info('Next steps:');
+        if ($this->stack === 'react') {
+            echo '  1. npm install' . PHP_EOL;
+            echo '  2. npm run dev' . PHP_EOL;
+            echo '  3. php celestial migrate' . PHP_EOL;
+            echo '  4. php celestial serve' . PHP_EOL;
+        } else {
+            echo '  1. php celestial migrate' . PHP_EOL;
+            echo '  2. php celestial serve' . PHP_EOL;
+            echo '  3. Visit /login or /register' . PHP_EOL;
+        }
+        self::newLine();
     }
 }

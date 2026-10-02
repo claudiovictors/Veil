@@ -22,7 +22,8 @@ use Slenix\Http\Middlewares\Middleware;
 class GuestMiddleware implements Middleware
 {
     /**
-     * Handle the incoming request.
+     * Blocks authenticated users from guest-only routes.
+     * JSON clients receive 200 + { redirect }; browsers are redirected.
      *
      * @param Request $request
      * @param Response $response
@@ -32,6 +33,11 @@ class GuestMiddleware implements Middleware
     public function handle(Request $request, Response $response, callable $next): mixed
     {
         if (auth()->check()) {
+            if ($request->expectsJson()) {
+                $response->json(['redirect' => '/dashboard'], 200);
+                return null;
+            }
+
             $response->redirect('/dashboard');
             return null;
         }

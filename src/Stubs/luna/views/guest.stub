@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ config('app.locale') }}">
+<html lang="{{ config('app.locale') }}"  data-theme="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {!! csrf_meta() !!}
 
     {{-- Favicon --}}
     <link rel="shortcut icon" href="{{ asset('logo.svg') }}" type="image/x-icon">
@@ -24,50 +26,29 @@
 
     {{-- Favicon --}}
     <link rel="shortcut icon" href="{{ asset('logo.png') }}" type="image/x-icon">
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
 </head>
-
 <body class="login-body">
-
-    {{-- ─────────────────────────────────────────────────────────────────
-        AUTH CONTAINER
-        Centered single-column layout shared by all guest pages
-        (login, register, password reset, etc.).
-    ───────────────────────────────────────────────────────────────────── --}}
     <main class="auth-container">
-
-        {{-- ── BRAND MARK ──────────────────────────────────────────────── --}}
         <div class="auth-logo-area">
             <img src="{{ asset('logo.png') }}" alt="Slenix Veil" width="40" height="40">
             <span>Slenix</span>
         </div>
-
-        {{-- ── AUTH CARD ────────────────────────────────────────────────── --}}
-        {{-- Child views inject their form and heading content here. --}}
         <div class="card">
             @yield('content')
         </div>
-
     </main>
-
     <script>
-        /**
-         * Toggles the visibility of a password input field.
-         *
-         * Swaps the input type between "password" and "text", and updates
-         * the Boxicons eye icon to reflect the current state.
-         *
-         * @param {string} inputId - The `id` of the password <input>.
-         * @param {string} iconId  - The `id` of the Boxicons <i> toggle element.
-         * @returns {void}
-         */
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon  = document.getElementById(iconId);
-
             if (!input || !icon) return;
-
             const isHidden = input.type === 'password';
-
             input.type = isHidden ? 'text' : 'password';
             icon.classList.replace(
                 isHidden ? 'bx-show' : 'bx-hide',
@@ -75,6 +56,5 @@
             );
         }
     </script>
-
 </body>
 </html>

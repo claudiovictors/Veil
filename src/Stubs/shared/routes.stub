@@ -7,40 +7,23 @@ use App\Controllers\DashboardController;
 |--------------------------------------------------------------------------
 | Guest Routes
 |--------------------------------------------------------------------------
-|
-| These routes are only accessible to unauthenticated users.
-| The 'guest' middleware redirects authenticated users to the dashboard.
-|
 */
 Router::group(['middleware' => 'guest'], function (): void {
-
-    // Login
-    Router::get('/login',  [AuthController::class, 'index'])->name('login');
+    Router::get('/login', [AuthController::class, 'index'])->name('login');
     Router::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-    // Register
-    Router::get('/register',  [AuthController::class, 'create'])->name('register');
+    Router::get('/register', [AuthController::class, 'create'])->name('register');
     Router::post('/register', [AuthController::class, 'store'])->name('register.post');
-
 });
 
 /*
 |--------------------------------------------------------------------------
 | Authenticated Routes
 |--------------------------------------------------------------------------
-|
-| These routes require the user to be logged in.
-| The 'auth' middleware redirects unauthenticated users to /login.
-|
 */
 Router::group(['middleware' => ['auth']], function (): void {
-
-    // Dashboard
     Router::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Logout
-    Router::get('/logout', [AuthController::class, 'logout'])->name('logout');
-
+    Router::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 // @end-veil-routes

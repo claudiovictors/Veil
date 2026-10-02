@@ -1,5 +1,53 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+## [1.4.1] - 2026-10-02
+
+### Breaking
+
+- Logout is now **POST `/logout` only** (was GET). Forms and clients must send CSRF (`@csrf` or `X-CSRF-TOKEN` header).
+- Dashboard route name is `dashboard` (layouts no longer reference `dashboard.show`).
+- Theme `localStorage` key unified to `theme` (was `slenix-theme` in Veil layouts).
+
+### Added
+
+- Dual-stack install: `--stack=luna|react`, `--force`, `--no-interaction`.
+- Interactive stack selection via `Prompt` when `--stack` is omitted (defaults to Luna in non-interactive/CI).
+- React multi-page auth (session cookie + CSRF; no SPA router / no Inertia).
+- JSON-aware `auth` / `guest` middlewares (`expectsJson()` → 401 / `{ redirect }`).
+- Idempotent route injection with `// @veil-routes` … `// @end-veil-routes`.
+- Login rate limit: `throttle:5,1` on `POST /login`.
+- CSRF token regeneration after login, register, and logout (`CSRF::regenerate()`).
+- Stub layout: `src/Stubs/shared/`, `luna/`, `react/`.
+
+### Changed
+
+- User model is published only when `app/Models/User.php` is missing.
+- Migrations are no longer published by Veil (project base already ships users migration).
+- Install command resolves project root by walking up until it finds `celestial`.
+- `VeilServiceProvider::stubsPath()` uses `__DIR__ . '/Stubs'`.
+
+### Fixed
+
+- Layout links used non-existent route name `dashboard.show`.
+- CSRF-vulnerable GET logout and GET logout form.
+- Theme key mismatch with Slenix welcome page.
+- Dead `publishModel` / `publishMigrations` paths that were never called (or pointed at missing stubs).
+- Route injection only checked a single marker and was not safely replaceable.
+
+### Security
+
+- Generic login error message (no email enumeration on failed login).
+- Registration still uses `unique:users,email` (may reveal existing emails) — intentional for a minimal starter kit; documented in README.
+- Session ID regenerated on login/logout via `SessionGuard`.
+- Logout is POST-only with CSRF.
+
+---
+
+## [1.4.0]
+
+(previous release notes…)
 All notable changes to Slenix Veil will be documented in this file.
 
 ## [1.4.0] - 2026-06-24

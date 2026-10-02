@@ -1,0 +1,11 @@
+@extends('layouts.app')
+
+@section('title', ucfirst($page ?? 'App') . ' - Slenix Veil')
+
+@section('content')
+<div
+    id="app"
+    data-page="{{ $page ?? 'login' }}"
+    data-props="{{ json_encode($props ?? []) }}"
+></div>
+@endsection

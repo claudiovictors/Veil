@@ -9,6 +9,7 @@ use Slenix\Http\Request;
 use Slenix\Http\Response;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use Slenix\Supports\Security\CSRF;
 
 /**
  * AuthController
@@ -25,7 +26,13 @@ class AuthController
      */
     public function index(Request $req, Response $res)
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'page'  => 'login',
+            'props' => [
+                'loginUrl'    => route('login.post'),
+                'registerUrl' => route('register'),
+            ],
+        ]);
     }
 
     /**
@@ -35,7 +42,13 @@ class AuthController
      */
     public function create(Request $req, Response $res)
     {
-        return view('auth.register');
+        return view('auth.register', [
+            'page'  => 'register',
+            'props' => [
+                'registerUrl' => route('register.post'),
+                'loginUrl'    => route('login'),
+            ],
+        ]);
     }
 
     /**
@@ -52,10 +65,13 @@ class AuthController
         $data = $req->validated();
 
         if (!auth()->attempt($data)) {
-            return redirect()->withFlash('error', 'Invalid credentials.')->to('/login');
+            $res->status(401)->json(['message' => 'Invalid credentials.']);
+            return;
         }
 
-        return redirect('/dashboard');
+        CSRF::regenerate();
+
+        $res->status(200)->json(['redirect' => '/dashboard']);
     }
 
     /**
@@ -78,12 +94,14 @@ class AuthController
         ]);
 
         if (!$user) {
-            return redirect()->withFlash('error', 'Failed to create account. Please try again.')->to('/register');
+            $res->status(500)->json(['message' => 'Failed to create account. Please try again.']);
+            return;
         }
 
         auth()->login($user);
+        CSRF::regenerate();
 
-        return redirect('/dashboard')->withFlash('success', 'Account created successfully.');
+        $res->status(200)->json(['redirect' => '/dashboard']);
     }
 
     /**
@@ -97,7 +115,13 @@ class AuthController
     public function logout(Request $req, Response $res)
     {
         auth()->logout();
+        CSRF::regenerate();
 
-        return redirect()->withFlash('success', 'Logout successful.')->to('/login');
+        if ($req->expectsJson()) {
+            $res->status(200)->json(['redirect' => '/login']);
+            return;
+        }
+
+        return redirect('/login');
     }
 }

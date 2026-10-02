@@ -1,0 +1,33 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Slenix Veil')
+
+@section('content')
+<div class="fi-page-header">
+    <h1 class="fi-page-title">Dashboard</h1>
+</div>
+
+@if(flash()->has('success'))
+    <div class="fi-alert fi-alert-success">
+        <i class='bx bx-check-circle fi-alert-icon'></i>
+        <div>
+            <div class="fi-alert-title">Success</div>
+            <div class="fi-alert-body">{{ flash()->get('success') }}</div>
+        </div>
+    </div>
+@endif
+
+<div class="fi-widgets-grid">
+    <div class="fi-card">
+        <div class="fi-card-content">
+            <div class="fi-card-avatar">
+                {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+            </div>
+            <div class="fi-card-user-info">
+                <div class="fi-welcome-title">Welcome, {{ auth()->user()->name ?? 'User' }}</div>
+                <div class="fi-welcome-role">{{ auth()->user()->email ?? '' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

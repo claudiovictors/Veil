@@ -21,17 +21,23 @@ use Slenix\Http\Middlewares\Middleware;
 
 class AuthMiddleware implements Middleware
 {
-    /**
-     * Handle the incoming request.
-     *
-     * @param Request $request
-     * @param Response $response
-     * @param callable $next
-     * @return mixed
-     */
+     /**
+        * Ensures the request is authenticated.
+        * JSON clients receive 401; browser clients are redirected to /login.
+        *
+        * @param Request $request
+        * @param Response $response
+        * @param callable $next
+        * @return mixed
+    */
     public function handle(Request $request, Response $response, callable $next): mixed
     {
         if (!auth()->check()) {
+            if ($request->expectsJson()) {
+                $response->status(401)->json(['message' => 'Unauthenticated.']);
+                return null;
+            }
+
             $response->redirect('/login');
             return null;
         }
