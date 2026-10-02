@@ -1,12 +1,12 @@
 # <p align="center">Slenix Veil</p>
 
 <p align="center">
-<img src="src/Stubs/public/logo.png" width="120" alt="Veil Logo">
+<img src="src/Stubs/luna/public/logo.png" width="120" alt="Veil Logo">
 </p>
 
 <p align="center">
 <a href="#"><img src="https://img.shields.io/badge/PHP-8.1%2B-blue" alt="PHP Version"></a>
-<a href="#"><img src="https://img.shields.io/badge/Version-1.0-green" alt="Version"></a>
+<a href="#"><img src="https://img.shields.io/badge/Version-1.4.2-green" alt="Version"></a>
 <a href="#"><img src="https://img.shields.io/badge/Slenix-2.5%2B-purple" alt="Slenix Version"></a>
 <a href="#"><img src="https://img.shields.io/badge/License-MIT-orange" alt="License"></a>
 </p>
